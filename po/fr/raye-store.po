@@ -1,0 +1,1361 @@
+# French translation of Raye Store.
+# This file is distributed under the same license as the raye-store package.
+msgid ""
+msgstr ""
+"Project-Id-Version: raye-store\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: src/qml/AppPage.qml:143
+msgctxt "@title"
+msgid "Screenshots"
+msgstr "Captures d'écran"
+
+#: src/qml/AppPage.qml:172 src/qml/ui/ScreenshotViewer.qml:75
+msgctxt "@action:button screenshots"
+msgid "Previous"
+msgstr "Précédente"
+
+#: src/qml/AppPage.qml:181 src/qml/ui/ScreenshotViewer.qml:84
+msgctxt "@action:button screenshots"
+msgid "Next"
+msgstr "Suivante"
+
+#: src/qml/AppPage.qml:191
+msgctxt "@title"
+msgid "Description"
+msgstr "Description"
+
+#: src/qml/AppPage.qml:233
+msgctxt "@action:button"
+msgid "Show less"
+msgstr "Afficher moins"
+
+#: src/qml/AppPage.qml:233
+msgctxt "@action:button"
+msgid "Show more"
+msgstr "Afficher plus"
+
+#: src/qml/AppPage.qml:244
+msgctxt "@title"
+msgid "Ratings"
+msgstr "Notes"
+
+#: src/qml/AppPage.qml:259
+msgctxt "@info"
+msgid "One rating"
+msgid_plural "%1 ratings"
+msgstr[0] "Une note"
+msgstr[1] "%1 notes"
+
+#: src/qml/AppPage.qml:302
+msgid "Not enough people have rated this app yet."
+msgstr "Trop peu de personnes ont noté cette application pour l'instant."
+
+#: src/qml/AppPage.qml:313
+msgctxt "@title"
+msgid "What's new"
+msgstr "Nouveautés"
+
+#: src/qml/AppPage.qml:315 src/qml/LibraryPage.qml:125
+msgctxt "@info"
+msgid "Version %1"
+msgstr "Version %1"
+
+#: src/qml/AppPage.qml:340
+msgctxt "@title"
+msgid "Additional information"
+msgstr "Informations supplémentaires"
+
+#: src/qml/AppPage.qml:377
+msgctxt "@title row of apps"
+msgid "People also like"
+msgstr "Les utilisateurs aiment aussi"
+
+#: src/qml/AppPage.qml:442
+msgctxt "@info:tooltip"
+msgid "The maker checked this app's page on Flathub"
+msgstr "L'éditeur a vérifié la page de cette application sur Flathub"
+
+#: src/qml/AppPage.qml:460
+msgctxt "@info 4.5 · 1.2K ratings"
+msgid "%1 · %2 ratings"
+msgstr "%1 · %2 notes"
+
+#: src/qml/AppPage.qml:461
+msgid "Not enough ratings yet"
+msgstr "Pas encore assez de notes"
+
+#: src/qml/AppPage.qml:471 src/qml/AppPage.qml:557
+msgctxt "@info age rating"
+msgid "Ages %1+"
+msgstr "%1 ans et plus"
+
+#: src/qml/AppPage.qml:472 src/qml/AppPage.qml:558
+msgctxt "@info age rating"
+msgid "Everyone"
+msgstr "Tout public"
+
+#: src/qml/AppPage.qml:476
+msgctxt "@info an early version"
+msgid "Preview"
+msgstr "Préversion"
+
+#: src/qml/AppPage.qml:493
+msgid "Install"
+msgstr "Installer"
+
+#: src/qml/AppPage.qml:501 src/qml/LibraryPage.qml:169
+msgid "Open"
+msgstr "Ouvrir"
+
+#: src/qml/AppPage.qml:508 src/qml/AppPage.qml:578 src/qml/LibraryPage.qml:247
+msgid "Uninstall"
+msgstr "Désinstaller"
+
+#: src/qml/AppPage.qml:527
+msgid "Preview: an early version that is still being written. Expect missing features."
+msgstr "Préversion : une première version encore en cours d'écriture. Des fonctions peuvent manquer."
+
+#: src/qml/AppPage.qml:535
+msgid "Free · from Flathub"
+msgstr "Gratuit · depuis Flathub"
+
+#: src/qml/AppPage.qml:536
+msgid "Free · offered by Raye, from its makers"
+msgstr "Gratuit · proposé par Raye, de la part de ses créateurs"
+
+#: src/qml/AppPage.qml:537
+msgid "Free · a Raye Linux package"
+msgstr "Gratuit · un paquet Raye Linux"
+
+#: src/qml/AppPage.qml:550
+msgctxt "@label"
+msgid "Made by"
+msgstr "Éditeur"
+
+#: src/qml/AppPage.qml:552
+msgctxt "@label"
+msgid "License"
+msgstr "Licence"
+
+#: src/qml/AppPage.qml:552
+msgctxt "@info license"
+msgid "Proprietary"
+msgstr "Propriétaire"
+
+#: src/qml/AppPage.qml:553
+msgctxt "@info license: %1 is its name"
+msgid "Free and open source (%1)"
+msgstr "Libre et open source (%1)"
+
+#: src/qml/AppPage.qml:554
+msgctxt "@label"
+msgid "Version"
+msgstr "Version"
+
+#: src/qml/AppPage.qml:555
+msgctxt "@label"
+msgid "Last update"
+msgstr "Dernière mise à jour"
+
+#: src/qml/AppPage.qml:556
+msgctxt "@label"
+msgid "Category"
+msgstr "Catégorie"
+
+#: src/qml/AppPage.qml:557
+msgctxt "@label"
+msgid "Age rating"
+msgstr "Classification"
+
+#: src/qml/AppPage.qml:560
+msgctxt "@label"
+msgid "Installs last month"
+msgstr "Installations le mois dernier"
+
+#: src/qml/AppPage.qml:561
+msgctxt "@label"
+msgid "Comes from"
+msgstr "Provenance"
+
+#: src/qml/AppPage.qml:563
+msgctxt "@label"
+msgid "Website"
+msgstr "Site web"
+
+#: src/qml/AppPage.qml:564
+msgctxt "@label"
+msgid "Help"
+msgstr "Aide"
+
+#: src/qml/AppPage.qml:564
+msgctxt "@info link"
+msgid "Get help"
+msgstr "Obtenir de l'aide"
+
+#: src/qml/AppPage.qml:565
+msgctxt "@label"
+msgid "Problems"
+msgstr "Problèmes"
+
+#: src/qml/AppPage.qml:565
+msgctxt "@info link"
+msgid "Report a problem"
+msgstr "Signaler un problème"
+
+#: src/qml/AppPage.qml:576 src/qml/LibraryPage.qml:245
+msgid "Uninstall %1?"
+msgstr "Désinstaller %1 ?"
+
+#: src/qml/AppPage.qml:577 src/qml/LibraryPage.qml:246
+msgid "It will be removed from this PC, with what only it needed. Your own files are kept."
+msgstr "L'application sera supprimée de ce PC, avec ce dont elle seule avait besoin. Vos propres fichiers sont conservés."
+
+#: src/qml/BrowsePage.qml:39 src/qml/HomePage.qml:52
+msgctxt "@title row of apps"
+msgid "Top free games"
+msgstr "Meilleurs jeux gratuits"
+
+#: src/qml/BrowsePage.qml:40
+msgctxt "@title row of apps"
+msgid "Trending games"
+msgstr "Jeux tendance"
+
+#: src/qml/BrowsePage.qml:41 src/qml/HomePage.qml:65
+msgctxt "@title row of apps"
+msgid "Best rated games"
+msgstr "Jeux les mieux notés"
+
+#: src/qml/BrowsePage.qml:42
+msgctxt "@title row of apps"
+msgid "New games"
+msgstr "Nouveaux jeux"
+
+#: src/qml/BrowsePage.qml:43
+msgctxt "@title row of games"
+msgid "Action"
+msgstr "Action"
+
+#: src/qml/BrowsePage.qml:44
+msgctxt "@title row of games"
+msgid "Strategy"
+msgstr "Stratégie"
+
+#: src/qml/BrowsePage.qml:45
+msgctxt "@title row of games"
+msgid "Racing"
+msgstr "Course"
+
+#: src/qml/BrowsePage.qml:46
+msgctxt "@title row of games"
+msgid "Puzzle and casual"
+msgstr "Réflexion et détente"
+
+#: src/qml/BrowsePage.qml:47
+msgctxt "@title row of games"
+msgid "Arcade"
+msgstr "Arcade"
+
+#: src/qml/BrowsePage.qml:48
+msgctxt "@title row of games"
+msgid "Shooters"
+msgstr "Jeux de tir"
+
+#: src/qml/BrowsePage.qml:49
+msgctxt "@title row of games"
+msgid "Adventure and role-playing"
+msgstr "Aventure et jeux de rôle"
+
+#: src/qml/BrowsePage.qml:50
+msgctxt "@title row of games"
+msgid "Simulation"
+msgstr "Simulation"
+
+#: src/qml/BrowsePage.qml:51
+msgctxt "@title row of games"
+msgid "Family"
+msgstr "En famille"
+
+#: src/qml/BrowsePage.qml:52
+msgctxt "@title row of games"
+msgid "Play online with others"
+msgstr "Jouer en ligne avec d'autres"
+
+#: src/qml/BrowsePage.qml:53
+msgctxt "@title row of games"
+msgid "Emulators"
+msgstr "Émulateurs"
+
+#: src/qml/BrowsePage.qml:54
+msgctxt "@title row of games"
+msgid "Launchers and tools"
+msgstr "Lanceurs et outils"
+
+#: src/qml/BrowsePage.qml:55 src/qml/BrowsePage.qml:74 src/qml/HomePage.qml:68
+msgctxt "@title row of apps"
+msgid "Recently updated"
+msgstr "Mis à jour récemment"
+
+#: src/qml/BrowsePage.qml:57 src/qml/HomePage.qml:49
+msgctxt "@title row of apps"
+msgid "Top free apps"
+msgstr "Meilleures applications gratuites"
+
+#: src/qml/BrowsePage.qml:58
+msgctxt "@title row of apps"
+msgid "Trending apps"
+msgstr "Applications tendance"
+
+#: src/qml/BrowsePage.qml:59 src/qml/HomePage.qml:56
+msgctxt "@title row of apps"
+msgid "Best rated"
+msgstr "Les mieux notées"
+
+#: src/qml/BrowsePage.qml:60 src/qml/HomePage.qml:55
+msgctxt "@title row of apps"
+msgid "New and notable"
+msgstr "Nouveautés à découvrir"
+
+#: src/qml/BrowsePage.qml:61 src/qml/HomePage.qml:57
+msgctxt "@title row of apps"
+msgid "Productivity"
+msgstr "Productivité"
+
+#: src/qml/BrowsePage.qml:62 src/qml/HomePage.qml:58
+msgctxt "@title row of apps"
+msgid "Photo and design"
+msgstr "Photo et design"
+
+#: src/qml/BrowsePage.qml:63
+msgctxt "@title row of apps"
+msgid "Video"
+msgstr "Vidéo"
+
+#: src/qml/BrowsePage.qml:64 src/qml/HomePage.qml:59
+msgctxt "@title row of apps"
+msgid "Music and audio"
+msgstr "Musique et audio"
+
+#: src/qml/BrowsePage.qml:65 src/qml/HomePage.qml:60
+msgctxt "@title row of apps"
+msgid "Watch and listen"
+msgstr "Regarder et écouter"
+
+#: src/qml/BrowsePage.qml:66
+msgctxt "@title row of apps"
+msgid "Internet"
+msgstr "Internet"
+
+#: src/qml/BrowsePage.qml:67 src/qml/HomePage.qml:61
+msgctxt "@title row of apps"
+msgid "Social"
+msgstr "Réseaux sociaux"
+
+#: src/qml/BrowsePage.qml:68 src/qml/HomePage.qml:62
+msgctxt "@title row of apps"
+msgid "Developer tools"
+msgstr "Outils de développement"
+
+#: src/qml/BrowsePage.qml:69 src/qml/HomePage.qml:64
+msgctxt "@title row of apps"
+msgid "Education"
+msgstr "Éducation"
+
+#: src/qml/BrowsePage.qml:70
+msgctxt "@title row of apps"
+msgid "Science"
+msgstr "Sciences"
+
+#: src/qml/BrowsePage.qml:71
+msgctxt "@title row of apps"
+msgid "Money"
+msgstr "Finances"
+
+#: src/qml/BrowsePage.qml:72
+msgctxt "@title row of apps"
+msgid "Security and privacy"
+msgstr "Sécurité et confidentialité"
+
+#: src/qml/BrowsePage.qml:73 src/qml/HomePage.qml:63
+msgctxt "@title row of apps"
+msgid "Utilities and tools"
+msgstr "Utilitaires et outils"
+
+#: src/qml/BrowsePage.qml:81
+msgctxt "@title page"
+msgid "Games"
+msgstr "Jeux"
+
+#: src/qml/BrowsePage.qml:81
+msgctxt "@title page"
+msgid "Apps"
+msgstr "Applications"
+
+#: src/qml/BrowsePage.qml:86
+msgid "Free games, and the launchers for the ones you already own."
+msgstr "Des jeux gratuits, et les lanceurs de ceux que vous possédez déjà."
+
+#: src/qml/BrowsePage.qml:87
+msgid "Every app here is free."
+msgstr "Toutes les applications sont gratuites."
+
+#: src/qml/BrowsePage.qml:131 src/qml/HomePage.qml:95
+msgctxt "@title"
+msgid "Collections"
+msgstr "Collections"
+
+#: src/qml/HomePage.qml:50
+msgctxt "@title row of apps"
+msgid "Trending"
+msgstr "Tendances"
+
+#: src/qml/HomePage.qml:51
+msgctxt "@title row of apps"
+msgid "Essential apps"
+msgstr "Applications essentielles"
+
+#: src/qml/HomePage.qml:118
+msgctxt "@title"
+msgid "Browse by category"
+msgstr "Parcourir par catégorie"
+
+#: src/qml/HomePage.qml:141
+msgctxt "@title"
+msgid "The apps can't be shown right now"
+msgstr "Les applications ne peuvent pas être affichées pour le moment"
+
+#: src/qml/HomePage.qml:142
+msgid "Raye couldn't load the list of apps. Check that you're connected to the internet, then try again."
+msgstr "Raye n'a pas pu charger la liste des applications. Vérifiez que vous êtes connecté à Internet, puis réessayez."
+
+#: src/qml/HomePage.qml:145
+msgctxt "@action:button"
+msgid "Try again"
+msgstr "Réessayer"
+
+#: src/qml/JobStatus.qml:28
+msgid "Canceling…"
+msgstr "Annulation…"
+
+#: src/qml/JobStatus.qml:32 src/qml/LibraryPage.qml:128
+msgid "Waiting…"
+msgstr "En attente…"
+
+#: src/qml/JobStatus.qml:32
+msgid "Starting…"
+msgstr "Démarrage…"
+
+#: src/qml/JobStatus.qml:35
+msgid "Updating · %1%"
+msgstr "Mise à jour · %1 %"
+
+#: src/qml/JobStatus.qml:35
+msgid "Downloading · %1%"
+msgstr "Téléchargement · %1 %"
+
+#: src/qml/JobStatus.qml:36 src/qml/LibraryPage.qml:54
+msgid "Updating…"
+msgstr "Mise à jour…"
+
+#: src/qml/JobStatus.qml:36
+msgid "Downloading…"
+msgstr "Téléchargement…"
+
+#: src/qml/JobStatus.qml:38
+msgid "Finishing the update…"
+msgstr "Fin de la mise à jour…"
+
+#: src/qml/JobStatus.qml:38
+msgid "Installing…"
+msgstr "Installation…"
+
+#: src/qml/AppPage.qml
+msgid "Installing means you accept its <a href=\"%1\">license terms</a>."
+msgstr "En l'installant, vous acceptez ses <a href=\"%1\">conditions de licence</a>."
+
+#: src/qml/JobStatus.qml
+msgid "Installing · %1%"
+msgstr "Installation · %1 %"
+
+#: src/qml/JobStatus.qml:40
+msgid "Removing…"
+msgstr "Suppression…"
+
+#: src/qml/JobStatus.qml:68 src/qml/ui/ConfirmDialog.qml:105
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/qml/JobStatus.qml:74
+msgid "Stop and leave nothing installed"
+msgstr "Arrêter sans rien laisser d'installé"
+
+#: src/qml/LibraryPage.qml:29
+msgctxt "@info time"
+msgid "Just now"
+msgstr "À l'instant"
+
+#: src/qml/LibraryPage.qml:30
+msgctxt "@info time"
+msgid "One minute ago"
+msgid_plural "%1 minutes ago"
+msgstr[0] "Il y a une minute"
+msgstr[1] "Il y a %1 minutes"
+
+#: src/qml/LibraryPage.qml:31
+msgctxt "@info time"
+msgid "One hour ago"
+msgid_plural "%1 hours ago"
+msgstr[0] "Il y a une heure"
+msgstr[1] "Il y a %1 heures"
+
+#: src/qml/LibraryPage.qml:32
+msgctxt "@info time"
+msgid "Yesterday"
+msgid_plural "%1 days ago"
+msgstr[0] "Hier"
+msgstr[1] "Il y a %1 jours"
+
+#: src/qml/LibraryPage.qml:42 src/qml/Main.qml:171
+msgid "Library"
+msgstr "Bibliothèque"
+
+#: src/qml/LibraryPage.qml:48
+msgctxt "@info:status"
+msgid "Checking…"
+msgstr "Recherche…"
+
+#: src/qml/LibraryPage.qml:48
+msgctxt "@action:button"
+msgid "Get updates"
+msgstr "Rechercher des mises à jour"
+
+#: src/qml/LibraryPage.qml:54
+msgid "Update all"
+msgstr "Tout mettre à jour"
+
+#: src/qml/LibraryPage.qml:65
+msgctxt "@title the PCs of the Raye account"
+msgid "Your devices"
+msgstr "Vos appareils"
+
+#: src/qml/LibraryPage.qml:66
+msgid "The apps on your other PCs"
+msgstr "Les applications de vos autres PC"
+
+#: src/qml/LibraryPage.qml:84
+msgid "Downloads"
+msgstr "Téléchargements"
+
+#: src/qml/LibraryPage.qml:115
+msgid "One update available"
+msgid_plural "%1 updates available"
+msgstr[0] "Une mise à jour disponible"
+msgstr[1] "%1 mises à jour disponibles"
+
+#: src/qml/LibraryPage.qml:124
+msgctxt "@info version 1.2 → 1.3"
+msgid "Version %1 → %2"
+msgstr "Version %1 → %2"
+
+#: src/qml/LibraryPage.qml:128
+msgctxt "@action:button"
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: src/qml/LibraryPage.qml:145
+msgctxt "@title"
+msgid "Installed"
+msgstr "Installées"
+
+#: src/qml/LibraryPage.qml:147
+msgctxt "@option:radio show"
+msgid "All"
+msgstr "Tout"
+
+#: src/qml/LibraryPage.qml:147
+msgctxt "@option:radio show"
+msgid "Apps"
+msgstr "Applications"
+
+#: src/qml/LibraryPage.qml:148
+msgctxt "@option:radio show"
+msgid "Games"
+msgstr "Jeux"
+
+#: src/qml/LibraryPage.qml:165
+msgctxt "@info kind of app"
+msgid "Game"
+msgstr "Jeu"
+
+#: src/qml/LibraryPage.qml:165
+msgctxt "@info kind of app"
+msgid "App"
+msgstr "Application"
+
+#: src/qml/LibraryPage.qml:177
+msgctxt "@action:button more actions for an app"
+msgid "More"
+msgstr "Plus"
+
+#: src/qml/LibraryPage.qml:182
+msgctxt "@action:inmenu"
+msgid "Show in Store"
+msgstr "Afficher dans le Store"
+
+#: src/qml/LibraryPage.qml:186
+msgctxt "@action:inmenu"
+msgid "Uninstall…"
+msgstr "Désinstaller…"
+
+#: src/qml/LibraryPage.qml:202
+msgctxt "@title"
+msgid "No games yet"
+msgstr "Aucun jeu pour l'instant"
+
+#: src/qml/LibraryPage.qml:202
+msgctxt "@title"
+msgid "No apps yet"
+msgstr "Aucune application pour l'instant"
+
+#: src/qml/LibraryPage.qml:203
+msgid "Apps you install from the Store show up here."
+msgstr "Les applications que vous installez depuis le Store apparaissent ici."
+
+#: src/qml/LibraryPage.qml:206
+msgctxt "@action:button"
+msgid "Browse apps"
+msgstr "Parcourir les applications"
+
+#: src/qml/LibraryPage.qml:217
+msgctxt "@title"
+msgid "Recent activity"
+msgstr "Activité récente"
+
+#: src/qml/LibraryPage.qml:230
+msgctxt "@info"
+msgid "Uninstalled"
+msgstr "Désinstallée"
+
+#: src/qml/LibraryPage.qml:230
+msgctxt "@info"
+msgid "Updated"
+msgstr "Mise à jour"
+
+#: src/qml/LibraryPage.qml:230
+msgctxt "@info"
+msgid "Installed"
+msgstr "Installée"
+
+#: src/qml/LibraryPage.qml:231
+msgctxt "@info"
+msgid "Canceled"
+msgstr "Annulé"
+
+#: src/qml/LibraryPage.qml:232
+msgctxt "@info"
+msgid "Couldn't uninstall"
+msgstr "Désinstallation impossible"
+
+#: src/qml/LibraryPage.qml:232
+msgctxt "@info"
+msgid "Couldn't update"
+msgstr "Mise à jour impossible"
+
+#: src/qml/LibraryPage.qml:232
+msgctxt "@info"
+msgid "Couldn't install"
+msgstr "Installation impossible"
+
+#: src/qml/ListPage.qml:73
+msgctxt "@title search results"
+msgid "Results for “%1”"
+msgstr "Résultats pour « %1 »"
+
+#: src/qml/ListPage.qml:79
+msgctxt "@info"
+msgid "One app"
+msgid_plural "%1 apps"
+msgstr[0] "Une application"
+msgstr[1] "%1 applications"
+
+#: src/qml/ListPage.qml:95
+msgctxt "@option:radio search in"
+msgid "All"
+msgstr "Tout"
+
+#: src/qml/ListPage.qml:95
+msgctxt "@option:radio search in"
+msgid "Apps"
+msgstr "Applications"
+
+#: src/qml/ListPage.qml:96
+msgctxt "@option:radio search in"
+msgid "Games"
+msgstr "Jeux"
+
+#: src/qml/ListPage.qml:97
+msgctxt "@option:radio sort by"
+msgid "Most popular"
+msgstr "Les plus populaires"
+
+#: src/qml/ListPage.qml:97
+msgctxt "@option:radio sort by"
+msgid "Top rated"
+msgstr "Les mieux notées"
+
+#: src/qml/ListPage.qml:98
+msgctxt "@option:radio sort by"
+msgid "Newest"
+msgstr "Les plus récentes"
+
+#: src/qml/ListPage.qml:98
+msgctxt "@option:radio sort by"
+msgid "Name"
+msgstr "Nom"
+
+#: src/qml/ListPage.qml:178
+msgctxt "@title"
+msgid "No results for “%1”"
+msgstr "Aucun résultat pour « %1 »"
+
+#: src/qml/ListPage.qml:179
+msgid "Try searching in all apps and games, or check the spelling."
+msgstr "Essayez de chercher dans toutes les applications et tous les jeux, ou vérifiez l'orthographe."
+
+#: src/qml/ListPage.qml:180
+msgid "Check the spelling, or try a shorter or different word."
+msgstr "Vérifiez l'orthographe, ou essayez un mot plus court ou différent."
+
+#: src/qml/ListPage.qml:183
+msgctxt "@action:button"
+msgid "Search everything"
+msgstr "Tout rechercher"
+
+#: src/qml/Main.qml:10 src/main.cpp:94 src/main.cpp:164
+msgid "Store"
+msgstr "Store"
+
+#: src/qml/Main.qml:98
+msgid "That did not work: %1"
+msgstr "Cela n'a pas fonctionné : %1"
+
+#: src/qml/Main.qml:146
+msgid "Home"
+msgstr "Accueil"
+
+#: src/qml/Main.qml:154
+msgctxt "@title navigation"
+msgid "Apps"
+msgstr "Applications"
+
+#: src/qml/Main.qml:162
+msgctxt "@title navigation"
+msgid "Games"
+msgstr "Jeux"
+
+#: src/qml/Main.qml:176
+msgid "One update"
+msgid_plural "%1 updates"
+msgstr[0] "Une mise à jour"
+msgstr[1] "%1 mises à jour"
+
+#: src/qml/Main.qml:215
+msgid "Back"
+msgstr "Retour"
+
+#: src/qml/Main.qml:238
+msgctxt "@action:button the Raye account"
+msgid "Account"
+msgstr "Compte"
+
+#: src/qml/ui/AppCard.qml:130
+msgctxt "@info on an app card"
+msgid "Installed"
+msgstr "Installée"
+
+#: src/qml/ui/AppCard.qml:131
+msgctxt "@info on an app card: an early version"
+msgid "Preview"
+msgstr "Préversion"
+
+#: src/qml/ui/AppCard.qml:132
+msgctxt "@info on an app card: costs nothing"
+msgid "Free"
+msgstr "Gratuit"
+
+#: src/qml/ui/CardRow.qml:105
+msgctxt "@action:button scroll a row of apps"
+msgid "Previous"
+msgstr "Précédent"
+
+#: src/qml/ui/CardRow.qml:114
+msgctxt "@action:button scroll a row of apps"
+msgid "Next"
+msgstr "Suivant"
+
+#: src/qml/ui/Collections.qml:11
+msgctxt "@title collection"
+msgid "Work from home"
+msgstr "Travailler de chez soi"
+
+#: src/qml/ui/Collections.qml:12
+msgctxt "@info collection"
+msgid "Calls, chat, documents, mail"
+msgstr "Appels, messages, documents, courriel"
+
+#: src/qml/ui/Collections.qml:16
+msgctxt "@title collection"
+msgid "Start streaming"
+msgstr "Lancer un stream"
+
+#: src/qml/ui/Collections.qml:17
+msgctxt "@info collection"
+msgid "Go live, record, clean up your sound"
+msgstr "Diffuser en direct, enregistrer, soigner le son"
+
+#: src/qml/ui/Collections.qml:20
+msgctxt "@title collection"
+msgid "Make music"
+msgstr "Faire de la musique"
+
+#: src/qml/ui/Collections.qml:21
+msgctxt "@info collection"
+msgid "Record, compose, mix"
+msgstr "Enregistrer, composer, mixer"
+
+#: src/qml/ui/Collections.qml:24
+msgctxt "@title collection"
+msgid "Edit photos and videos"
+msgstr "Retoucher photos et vidéos"
+
+#: src/qml/ui/Collections.qml:25
+msgctxt "@info collection"
+msgid "Retouch, draw, cut, export"
+msgstr "Retoucher, dessiner, monter, exporter"
+
+#: src/qml/ui/Collections.qml:29
+msgctxt "@title collection"
+msgid "Play together"
+msgstr "Jouer ensemble"
+
+#: src/qml/ui/Collections.qml:30
+msgctxt "@info collection"
+msgid "Games and the apps to play with friends"
+msgstr "Des jeux et les applications pour jouer entre amis"
+
+#: src/qml/ui/Format.qml:12
+msgctxt "@title category"
+msgid "Productivity"
+msgstr "Productivité"
+
+#: src/qml/ui/Format.qml:13
+msgctxt "@title category"
+msgid "Photo & design"
+msgstr "Photo et design"
+
+#: src/qml/ui/Format.qml:14
+msgctxt "@title category"
+msgid "Music & video"
+msgstr "Musique et vidéo"
+
+#: src/qml/ui/Format.qml:15
+msgctxt "@title category"
+msgid "Internet"
+msgstr "Internet"
+
+#: src/qml/ui/Format.qml:16
+msgctxt "@title category"
+msgid "Social"
+msgstr "Réseaux sociaux"
+
+#: src/qml/ui/Format.qml:17
+msgctxt "@title category"
+msgid "Education"
+msgstr "Éducation"
+
+#: src/qml/ui/Format.qml:18
+msgctxt "@title category"
+msgid "Developer tools"
+msgstr "Outils de développement"
+
+#: src/qml/ui/Format.qml:19
+msgctxt "@title category"
+msgid "Utilities"
+msgstr "Utilitaires"
+
+#: src/qml/ui/Format.qml:22
+msgctxt "@title game genre"
+msgid "Action"
+msgstr "Action"
+
+#: src/qml/ui/Format.qml:23
+msgctxt "@title game genre"
+msgid "Adventure"
+msgstr "Aventure"
+
+#: src/qml/ui/Format.qml:24
+msgctxt "@title game genre"
+msgid "Strategy"
+msgstr "Stratégie"
+
+#: src/qml/ui/Format.qml:25
+msgctxt "@title game genre"
+msgid "Puzzle"
+msgstr "Réflexion"
+
+#: src/qml/ui/Format.qml:26
+msgctxt "@title game genre"
+msgid "Simulation"
+msgstr "Simulation"
+
+#: src/qml/ui/Format.qml:27
+msgctxt "@title game genre"
+msgid "Emulators"
+msgstr "Émulateurs"
+
+#: src/qml/ui/Format.qml:28
+msgctxt "@title game genre"
+msgid "Launchers"
+msgstr "Lanceurs"
+
+#: src/qml/ui/Format.qml:36
+msgctxt "@info category of one app"
+msgid "Game"
+msgstr "Jeu"
+
+#: src/qml/ui/Format.qml:72
+msgctxt "@info a number in thousands, as in 1.2K ratings"
+msgid "%1K"
+msgstr "%1 k"
+
+#: src/qml/ui/Format.qml:74
+msgctxt "@info a number in millions, as in 3.4M downloads"
+msgid "%1M"
+msgstr "%1 M"
+
+#: src/qml/ui/Format.qml:90
+msgctxt "@info where the app comes from"
+msgid "Flathub"
+msgstr "Flathub"
+
+#: src/qml/ui/Format.qml:91
+msgctxt "@info where the app comes from"
+msgid "Raye, from its makers"
+msgstr "Raye, de la part de ses créateurs"
+
+#: src/qml/ui/Format.qml:92
+msgctxt "@info where the app comes from"
+msgid "Raye Linux packages"
+msgstr "Paquets Raye Linux"
+
+#: src/qml/ui/Format.qml:100
+msgctxt "@info date format, Qt syntax"
+msgid "MMMM d, yyyy"
+msgstr "d MMMM yyyy"
+
+#: src/qml/ui/GetButton.qml:28
+msgctxt "@info:status"
+msgid "Removing…"
+msgstr "Suppression…"
+
+#: src/qml/ui/GetButton.qml:29
+msgctxt "@info:status"
+msgid "Waiting…"
+msgstr "En attente…"
+
+#: src/qml/ui/GetButton.qml:30
+msgctxt "@info:status percent done"
+msgid "%1%"
+msgstr "%1 %"
+
+#: src/qml/ui/GetButton.qml:31
+msgctxt "@info:status"
+msgid "Installing…"
+msgstr "Installation…"
+
+#: src/qml/ui/GetButton.qml:32
+msgctxt "@action:button start the app"
+msgid "Open"
+msgstr "Ouvrir"
+
+#: src/qml/ui/GetButton.qml:33
+msgctxt "@action:button"
+msgid "Install"
+msgstr "Installer"
+
+#: src/qml/ui/GetButton.qml:34
+msgctxt "@action:button"
+msgid "Open %1"
+msgstr "Ouvrir %1"
+
+#: src/qml/ui/GetButton.qml:35
+msgctxt "@action:button"
+msgid "Install %1"
+msgstr "Installer %1"
+
+#: src/qml/ui/Hero.qml:24
+msgctxt "@title the featured apps at the top"
+msgid "Featured"
+msgstr "À la une"
+
+#: src/qml/ui/Hero.qml:81
+msgctxt "@action:button featured apps"
+msgid "Previous"
+msgstr "Précédente"
+
+#: src/qml/ui/Hero.qml:91
+msgctxt "@action:button featured apps"
+msgid "Next"
+msgstr "Suivante"
+
+#: src/qml/ui/InfoBar.qml:61
+msgctxt "@action:button close the message"
+msgid "Close"
+msgstr "Fermer"
+
+#: src/qml/ui/ScreenshotThumb.qml:22
+msgctxt "@action:button"
+msgid "Show the screenshot"
+msgstr "Afficher la capture d'écran"
+
+#: src/qml/ui/ScreenshotViewer.qml:65
+msgctxt "@info screenshot 2 of 5"
+msgid "%1 of %2"
+msgstr "%1 sur %2"
+
+#: src/qml/ui/ScreenshotViewer.qml:92
+msgctxt "@action:button"
+msgid "Close"
+msgstr "Fermer"
+
+#: src/qml/ui/SearchBox.qml:21
+msgctxt "@info:placeholder"
+msgid "Search apps and games"
+msgstr "Rechercher des applications et des jeux"
+
+#: src/qml/ui/SearchBox.qml:77
+msgctxt "@action:button empty the search box"
+msgid "Clear"
+msgstr "Effacer"
+
+#: src/qml/ui/SearchBox.qml:91
+msgctxt "@action:button"
+msgid "Search"
+msgstr "Rechercher"
+
+#: src/qml/ui/SectionHeader.qml:31
+msgctxt "@action:button more apps of this row"
+msgid "See all"
+msgstr "Tout afficher"
+
+#: src/qml/ui/Shimmer.qml:16
+msgctxt "@info:status something is loading"
+msgid "Loading"
+msgstr "Chargement"
+
+#: src/qml/ui/Stars.qml:14
+msgctxt "@info rating"
+msgid "%1 out of 5 stars"
+msgstr "%1 étoiles sur 5"
+
+#: src/installer.cpp:110
+msgid "You're offline. Check your internet connection and try again."
+msgstr "Vous êtes hors ligne. Vérifiez votre connexion Internet et réessayez."
+
+#: src/installer.cpp:111
+msgid "There isn't enough space on this PC. Free up some space and try again."
+msgstr "Il n'y a pas assez d'espace sur ce PC. Libérez de l'espace et réessayez."
+
+#: src/installer.cpp:112
+msgid "Canceled."
+msgstr "Annulé."
+
+#: src/installer.cpp:113
+msgid "You need root access to do this."
+msgstr "Vous avez besoin de l'accès root pour faire cela."
+
+#: src/installer.cpp:114
+msgid "Another install or update is running. Try again when it's done."
+msgstr "Une autre installation ou mise à jour est en cours. Réessayez quand elle sera terminée."
+
+#: src/installer.cpp:115
+msgid "This app isn't available right now."
+msgstr "Cette application n'est pas disponible pour le moment."
+
+#: src/installer.cpp:118
+msgid "Something went wrong. Try again later."
+msgstr "Un problème est survenu. Réessayez plus tard."
+
+#: src/installer.cpp:132
+msgctxt "a size in gigabytes"
+msgid "%1 GB"
+msgstr "%1 Go"
+
+#: src/installer.cpp:134
+msgctxt "a size in megabytes"
+msgid "%1 MB"
+msgstr "%1 Mo"
+
+#: src/installer.cpp:136
+msgctxt "a size in kilobytes"
+msgid "%1 KB"
+msgstr "%1 Ko"
+
+#: src/installer.cpp:137
+msgctxt "a size in bytes"
+msgid "%1 bytes"
+msgstr "%1 octets"
+
+#: src/installer.cpp:141
+msgctxt "bytes downloaded of the whole download"
+msgid "%1 of %2"
+msgstr "%1 sur %2"
+
+#: src/installer.cpp:586
+msgid "App components"
+msgstr "Composants d'applications"
+
+#: src/main.cpp:68
+msgid "Open Store"
+msgstr "Ouvrir le Store"
+
+#: src/main.cpp:95
+msgid "Apps for Raye Linux"
+msgstr "Les applications pour Raye Linux"
+
+#: src/main.cpp:102
+msgid "App to show: its id, or an appstream:// link"
+msgstr "Application à afficher : son identifiant, ou un lien appstream://"
+
+#: src/main.cpp:161
+msgid "%1 is still installing. We'll let you know when it's ready."
+msgstr "%1 est encore en cours d'installation. Nous vous préviendrons quand ce sera prêt."
+
+#: src/main.cpp:162
+msgid "One app is still installing. We'll let you know when it's ready."
+msgid_plural "%1 apps are still installing. We'll let you know when they're ready."
+msgstr[0] "Une application est encore en cours d'installation. Nous vous préviendrons quand elle sera prête."
+msgstr[1] "%1 applications sont encore en cours d'installation. Nous vous préviendrons quand elles seront prêtes."
+
+#: src/main.cpp:175
+msgid "%1 is ready"
+msgstr "%1 est prêt"
+
+#: src/main.cpp:175
+msgid "Find it in Start."
+msgstr "Retrouvez-le dans Démarrer."
+
+#: src/main.cpp:178
+msgid "We couldn't remove %1"
+msgstr "Impossible de supprimer %1"
+
+#: src/main.cpp:179
+msgid "We couldn't update %1"
+msgstr "Impossible de mettre à jour %1"
+
+#: src/main.cpp:180
+msgid "We couldn't install %1"
+msgstr "Impossible d'installer %1"
+
+#: src/runnermatch.cpp:75
+msgctxt "start menu search, an app the user can install"
+msgid "Get %1…"
+msgstr "Obtenir %1…"
+
+#: src/qml/AppPage.qml
+msgid "Installed on this PC · system"
+msgstr "Installée sur ce PC · système"
+
+#: src/qml/LibraryPage.qml
+msgctxt "@info where the app comes from"
+msgid "System"
+msgstr "Système"
+
+#: src/qml/ui/UninstallDialog.qml
+#, kde-format
+msgid "%1 is open. It will be closed, then removed from this PC with what only it needed. Your own files are kept."
+msgstr "%1 est ouverte. Elle sera fermée, puis supprimée de ce PC avec ce dont elle seule avait besoin. Vos fichiers sont conservés."
+
+#: src/qml/ui/UninstallDialog.qml
+msgid "Close and uninstall"
+msgstr "Fermer et désinstaller"
+
+#: src/installer.cpp
+msgid "Other apps or Raye itself need this, so it can't be removed."
+msgstr "D'autres applications ou Raye en ont besoin : impossible de la supprimer."
+
+#: src/installer.cpp
+#, kde-format
+msgid "That didn't work. The system says: %1"
+msgstr "Ça n'a pas fonctionné. Le système indique : %1"
+
+#: src/installer.cpp
+#, kde-format
+msgid "%1 is still on this PC."
+msgstr "%1 est toujours sur ce PC."
+
+#: src/main.cpp
+msgid "Open the page of this app"
+msgstr "Ouvrir la page de cette application"
+
+#: src/main.cpp
+msgid "Remove this app, with no window, and print how it goes as JSON lines"
+msgstr "Supprimer cette application, sans fenêtre, et afficher l'avancement en lignes JSON"
+
+#: src/uninstallcommand.cpp
+msgid "This app isn't on this PC."
+msgstr "Cette application n'est pas sur ce PC."
+
+#: src/uninstallcommand.cpp
+msgid "This app can't be removed here."
+msgstr "Cette application ne peut pas être supprimée ici."
+
+#: src/qml/ui/SuggestionsFlyout.qml
+#, kde-format
+msgctxt "@action:button %1 is what was typed"
+msgid "See all results for “%1”"
+msgstr "Voir tous les résultats pour « %1 »"
+
+#: src/qml/Main.qml
+msgctxt "@title navigation"
+msgid "Settings"
+msgstr "Réglages"
+
+#: src/qml/SettingsPage.qml
+msgctxt "@title the Store's settings page"
+msgid "Settings"
+msgstr "Réglages"
+
+#: src/qml/SettingsPage.qml
+msgctxt "@title"
+msgid "App updates"
+msgstr "Mises à jour des applications"
+
+#: src/qml/SettingsPage.qml
+msgid "Update apps automatically"
+msgstr "Mettre à jour les applications automatiquement"
+
+#: src/qml/SettingsPage.qml
+msgid "Once a day, when this PC is plugged in and idle. Raye Update looks after the system."
+msgstr "Une fois par jour, quand ce PC est branché et inactif. Raye Update s'occupe du système."
+
+#: src/qml/SettingsPage.qml
+msgctxt "@title"
+msgid "Search"
+msgstr "Recherche"
+
+#: src/qml/SettingsPage.qml
+msgid "Show system packages"
+msgstr "Afficher les paquets système"
+
+#: src/qml/SettingsPage.qml
+msgid "Also list tools and other parts of the system when you search."
+msgstr "Lister aussi les outils et les autres éléments du système dans la recherche."
+
+#: src/qml/SettingsPage.qml
+msgctxt "@title"
+msgid "About this app"
+msgstr "À propos de cette application"
+
+#: src/qml/SettingsPage.qml
+#, kde-format
+msgctxt "@info %1 is a version number"
+msgid "Version %1"
+msgstr "Version %1"
+
+#: src/qml/SettingsPage.qml
+msgctxt "@info a switch is on"
+msgid "On"
+msgstr "Activé"
+
+#: src/qml/SettingsPage.qml
+msgctxt "@info a switch is off"
+msgid "Off"
+msgstr "Désactivé"
+
+#: src/qml/ui/Format.qml
+msgctxt "@info where the app comes from"
+msgid "Its maker's installer, checked by Raye"
+msgstr "L'installateur de son éditeur, vérifié par Raye"
+
+#: src/qml/ui/Format.qml
+msgctxt "@info a Windows program checked one by one"
+msgid "Optimized for Raye"
+msgstr "Optimisé pour Raye"
+
+#: src/qml/ui/Format.qml
+msgctxt "@info a Windows program on the standard settings"
+msgid "Works on Raye"
+msgstr "Fonctionne sur Raye"
+
+#: src/qml/ui/Format.qml
+msgctxt "@info a game whose anti-cheat refuses this system"
+msgid "Doesn't work on Raye"
+msgstr "Ne fonctionne pas sur Raye"
+
+#: src/qml/ui/Format.qml
+msgctxt "@info the version made for this system, not the Windows one"
+msgid "Native app"
+msgstr "Application native"
+
+#: src/qml/ui/Format.qml
+msgid ""
+"Raye checked this program itself, on a real PC, and runs it with settings "
+"made for it."
+msgstr ""
+"Raye a vérifié ce programme lui-même, sur un vrai PC, et le lance avec des "
+"réglages faits pour lui."
+
+#: src/qml/ui/Format.qml
+msgid ""
+"Runs with Raye's standard settings for Windows programs. It hasn't been "
+"checked one by one yet."
+msgstr ""
+"Se lance avec les réglages standard de Raye pour les programmes Windows. Il "
+"n'a pas encore été vérifié individuellement."
+
+#: src/qml/ui/Format.qml
+msgid ""
+"Its anti-cheat refuses this system. Raye won't try to get around it: that "
+"gets accounts banned."
+msgstr ""
+"Son anti-triche refuse ce système. Raye ne cherchera pas à le contourner : "
+"c'est ce qui fait bannir les comptes."
+
+#: src/qml/ui/Format.qml
+msgid ""
+"This is the native version, not the Windows one. It starts faster and fits "
+"in better on Raye."
+msgstr ""
+"C'est la version native, pas celle de Windows. Elle démarre plus vite et "
+"s'intègre mieux à Raye."
+
+#: src/qml/JobStatus.qml
+msgid "Finish in the setup window that opened."
+msgstr "Terminez dans la fenêtre d'installation qui s'est ouverte."
+
+#: src/qml/AppPage.qml
+msgid "Its maker's own installer, checked by Raye · %1"
+msgstr "L'installateur de son éditeur, vérifié par Raye · %1"
+
+#: src/qml/AppPage.qml
+msgid "Its maker's own installer, checked by Raye"
+msgstr "L'installateur de son éditeur, vérifié par Raye"
+
+#: src/qml/HomePage.qml
+msgctxt "@title row of Windows programs"
+msgid "Optimized for Raye"
+msgstr "Optimisé pour Raye"
+
+#: src/qml/HomePage.qml
+msgctxt "@title row of Windows programs"
+msgid "Your Windows favorites"
+msgstr "Vos favoris Windows"
+
+#: src/qml/ui/Format.qml
+msgid "This one can't run on Raye for now, for the reason given with it."
+msgstr "Celui-ci ne peut pas fonctionner sur Raye pour l'instant, pour la raison indiquée."

@@ -1,0 +1,17 @@
+[Desktop Entry]
+Name=Raye Store
+Name[fr]=Raye Store
+Comment=Find apps to get from the Store
+Comment[fr]=Trouver des applications à obtenir dans le Store
+Type=Service
+Icon=system-software-install
+X-KDE-PluginInfo-Author=Raye Linux
+X-KDE-PluginInfo-Name=org.raye.store.runner
+X-KDE-PluginInfo-Version=1.0
+X-KDE-PluginInfo-License=GPL
+X-KDE-PluginInfo-EnabledByDefault=true
+X-Plasma-API=DBus
+X-Plasma-DBusRunner-Service=org.raye.store.runner
+X-Plasma-DBusRunner-Path=/runner
+X-Plasma-Runner-Min-Letter-Count=3
+X-Plasma-Request-Actions-Once=true

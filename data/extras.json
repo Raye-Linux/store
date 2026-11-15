@@ -1,0 +1,19 @@
+{
+    "apps": [
+        {
+            "id": "ai.storyteller.artcraft-launcher",
+            "name": "ArtCraft",
+            "summary": "Open-source creative suite: photos, vector art, video, PDF, layout and more",
+            "description": "<p>ArtCraft is a family of free, open-source creative apps written in Rust: PhotoCraft for photo editing, VectorCraft for illustration, FilmCraft for video, LightCraft for raw photos, PdfCraft for PDF files, DesignCraft for page layout, and more.</p><p>This installs the ArtCraft Launcher, which installs and updates each app. Most apps are early versions.</p>",
+            "icon": "/usr/share/raye-store/icons/artcraft-launcher.png",
+            "developer": "Storytold",
+            "license": "Apache-2.0",
+            "package": "artcraft-launcher",
+            "version": "0.9.0",
+            "url": "https://github.com/storytold/craft-launcher/releases/download/v0.9.0/artcraft-launcher-0.9.0-linux-x86_64.deb",
+            "sha256": "94e7e8c30ec9d50e7c2cf6df32f47dbb9f2863edde923d4ae9e8bbc54da47eb0",
+            "categories": ["Graphics", "AudioVideo", "Office"],
+            "preview": true
+        }
+    ]
+}

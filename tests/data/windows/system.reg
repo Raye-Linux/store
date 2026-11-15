@@ -1,0 +1,75 @@
+WINE REGISTRY Version 2
+;; All keys relative to \\Machine
+
+#arch=win64
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{0A4A6B47-9B7E-46A2-AC7E-1E4A3D6D2C3B}] 1793000000
+#time=6adf024000000000
+"DisplayName"="Wine Mono Runtime"
+"Publisher"="The Wine Project"
+"DisplayVersion"="10.4.0"
+"WindowsInstaller"=dword:00000001
+
+[Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{5B1E1C0F-7A2D-4E47-9C3B-0C8F3E8E7A10}] 1793000000
+#time=6adf024000000000
+"DisplayName"="Runtime Pieces x86"
+"Publisher"="Someone"
+"DisplayVersion"="14.40"
+"SystemComponent"=dword:00000000
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\RayeTestTool] 1793300000
+#time=6ae3962000000000
+"DisplayName"="Raye Test Tool"
+"Publisher"="Raye Test Publisher"
+"DisplayVersion"="1.2.3"
+"DisplayIcon"="C:\\Program Files\\Raye Test\\tool.exe,0"
+"InstallLocation"="C:\\Program Files\\Raye Test"
+"UninstallString"="\"C:\\Program Files\\Raye Test\\unins000.exe\""
+"InstallDate"="20261029"
+"EstimatedSize"=dword:00000800
+
+[Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Unicode Tool_is1] 1793310000
+#time=6ae3bd3000000000
+"DisplayName"="\xdcn\x00efc\x00f8d\xe9 \x5de5\x5177 1.0"
+"Publisher"="\x00c7a Marche Ltd"
+"DisplayVersion"="1.0"
+"InstallLocation"=str(2):"%ProgramFiles%\\\xdcn\x00efc\x00f8d\xe9 \x5de5\x5177\\"
+"UninstallString"="\"C:\\Program Files\\\xdcn\x00efc\x00f8d\xe9 \x5de5\x5177\\unins000.exe\""
+"QuietUninstallString"="\"C:\\Program Files\\\xdcn\x00efc\x00f8d\xe9 \x5de5\x5177\\unins000.exe\" /SILENT"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\{11111111-2222-3333-4444-555555555555}] 1793320000
+#time=6ae3e44000000000
+"DisplayName"="Raye MSI Thing"
+"Publisher"="Raye Test Publisher"
+"DisplayVersion"="3.0"
+"WindowsInstaller"=dword:00000001
+"UninstallString"="MsiExec.exe /I{11111111-2222-3333-4444-555555555555}"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\HiddenPart] 1793320000
+#time=6ae3e44000000000
+"DisplayName"="Hidden part"
+"SystemComponent"=dword:00000001
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\KB123456] 1793320000
+#time=6ae3e44000000000
+"DisplayName"="Update for Raye Test Tool"
+"ParentKeyName"="RayeTestTool"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\NoName] 1793320000
+#time=6ae3e44000000000
+"Publisher"="Nobody"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Sticky] 1793320000
+#time=6ae3e44000000000
+"DisplayName"="Sticky Driver"
+"NoRemove"=dword:00000001
+"UninstallString"="C:\\windows\\sticky.exe"
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Run] 1793300000
+#time=6ae3962000000000
+"Thing"="C:\\thing.exe"
+
+[Software\\Raye\\Binary] 1793300000
+"Blob"=hex:00,01,02,03,04,05,06,07,08,09,0a,0b,0c,0d,0e,0f,\
+  10,11,12
+"After"="ok"

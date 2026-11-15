@@ -1,0 +1,17 @@
+# generated
+[fortnite]
+name      = Fortnite
+state     = blocked
+anticheat = easy-anti-cheat
+why_en    = Epic has not turned on the Linux side of its anti-cheat.
+why_fr    = Epic n'a pas activé la partie Linux de son anti-triche.
+
+[winrar]
+name  = WinRAR
+state = untested
+
+[apex]
+name   = Apex Legends
+state  = blocked
+why_en = Its publisher switched Linux play off.
+why_fr = Son éditeur a coupé le jeu sous Linux.

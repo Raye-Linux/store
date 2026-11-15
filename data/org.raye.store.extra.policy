@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>Raye Linux</vendor>
+  <action id="org.raye.store.extra">
+    <description>Install or remove an app offered by Raye</description>
+    <description xml:lang="fr">Installer ou désinstaller une application proposée par Raye</description>
+    <message>Installing or removing this app needs your permission</message>
+    <message xml:lang="fr">Installer ou désinstaller cette application demande votre autorisation</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/raye-store-extra</annotate>
+  </action>
+</policyconfig>

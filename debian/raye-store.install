@@ -1,0 +1,14 @@
+#!/bin/sh
+# What goes into raye-store, from what the build installed. A script, not
+# a list: a path shows up once the build makes it, so new parts of the
+# Store (user units, translations, launchers) need no edit here.
+set -e
+cd debian/tmp
+for path in usr/bin/raye-store usr/bin/plasma-discover usr/libexec/raye-store-* \
+        usr/share/applications/*.desktop usr/share/raye-store usr/share/polkit-1 \
+        usr/lib/systemd/system/raye-store-* usr/lib/systemd/user/raye-store-* \
+        usr/share/locale usr/share/krunner usr/share/dbus-1 usr/share/knotifications6; do
+    if [ -e "$path" ]; then
+        echo "$path"
+    fi
+done

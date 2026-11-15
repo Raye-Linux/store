@@ -1,0 +1,10 @@
+[
+  {"id": "org.mozilla.firefox", "installs_last_month": 412000, "trending": 1.4, "favorites": 900, "verified": true, "updated_at": 1793318400, "added_at": 1500000000},
+  {"id": "org.videolan.VLC", "installs_last_month": 300000, "trending": 0.9, "favorites": 700, "verified": true, "updated_at": 1790000000, "added_at": 1480000000},
+  {"id": "com.valvesoftware.Steam", "installs_last_month": 250000, "trending": 2.1, "favorites": 800, "verified": false, "updated_at": 1793000000, "added_at": 1490000000},
+  {"id": "org.gimp.GIMP", "installs_last_month": 120000, "trending": 1.0, "favorites": 400, "verified": true, "updated_at": 1792000000, "added_at": 1470000000},
+  {"id": "org.kde.krita", "installs_last_month": 120000, "trending": 1.2, "favorites": 300, "verified": false, "updated_at": 1791000000, "added_at": 1475000000},
+  {"id": "org.kde.kdenlive", "installs_last_month": 60000, "verified": true},
+  {"installs_last_month": 999999},
+  "not an object"
+]

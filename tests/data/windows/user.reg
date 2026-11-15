@@ -1,0 +1,14 @@
+WINE REGISTRY Version 2
+;; All keys relative to \\User\\S-1-5-21-0-0-0-1000
+
+#arch=win64
+
+[Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Chatty] 1793330000
+#time=6ae40b5000000000
+"DisplayName"="Chatty"
+"Publisher"="Chatty Inc."
+"DisplayVersion"="0.9.1"
+"DisplayIcon"="C:\\users\\raye\\AppData\\Local\\Chatty\\app.ico"
+"InstallLocation"="C:\\users\\raye\\AppData\\Local\\Chatty"
+"UninstallString"="C:\\users\\raye\\AppData\\Local\\Chatty\\Update.exe --uninstall"
+"Comments"="Line one\nquote \" and back\\slash"

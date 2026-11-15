@@ -1,0 +1,27 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+    # Flathub, from the file we ship: works without a network
+    flatpak remote-add --system --if-not-exists flathub \
+        /usr/share/raye-store/flathub.flatpakrepo || true
+
+    # Raye's look inside Flatpak apps: one "flatpak override" option a
+    # line (--filesystem= or --env=), applied to every app
+    overrides=/usr/share/raye-store/flatpak/overrides
+    if [ -r "$overrides" ]; then
+        while IFS= read -r option || [ -n "$option" ]; do
+            case "$option" in
+                ''|'#'*) continue ;;
+                --filesystem=*|--env=*) ;;
+                *) echo "raye-store: skipping \"$option\" in $overrides" >&2; continue ;;
+            esac
+            case "$option" in
+                *[!A-Za-z0-9_./:=+~-]*)
+                    echo "raye-store: skipping \"$option\" in $overrides" >&2
+                    continue ;;
+            esac
+            flatpak override --system "$option" || true
+        done < "$overrides"
+    fi
+fi
+#DEBHELPER#

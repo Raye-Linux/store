@@ -1,0 +1,192 @@
+{
+    "programs": [
+        {
+            "profile": "winrar",
+            "name": "WinRAR",
+            "developer": "win.rar GmbH",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.win-rar.com/",
+            "license_url": "https://www.win-rar.com/winrarlicense.html",
+            "categories": ["Utility", "Archiving"],
+            "keywords": ["rar", "zip", "archive"],
+            "icon": "windows/winrar.png",
+            "main": "WinRAR.exe",
+            "summary": {
+                "en": "Opens and makes RAR and ZIP archives",
+                "fr": "Ouvre et crée des archives RAR et ZIP"
+            },
+            "description": {
+                "en": "<p>The archiver many people keep from Windows. It opens RAR, ZIP, 7z and a dozen other formats, makes RAR and ZIP archives, and can split them or protect them with a password.</p><p>WinRAR is shareware: it works in full during the trial, then asks you to buy a license.</p>",
+                "fr": "<p>L'archiveur que beaucoup gardent de Windows. Il ouvre les archives RAR, ZIP, 7z et une douzaine d'autres formats, crée des archives RAR et ZIP, et peut les découper ou les protéger par un mot de passe.</p><p>WinRAR est un partagiciel : il fonctionne entièrement pendant l'essai, puis vous demande d'acheter une licence.</p>"
+            },
+            "installer": {
+                "url": "https://www.rarlab.com/rar/winrar-x64-723.exe",
+                "file": "winrar-x64-723.exe",
+                "version": "7.23",
+                "size": 3775056,
+                "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b",
+                "silent": ["/S"],
+                "folder": "Program Files/WinRAR",
+                "installed_size": 9894001
+            }
+        },
+        {
+            "profile": "7-zip",
+            "name": "7-Zip",
+            "developer": "Igor Pavlov",
+            "license": "LGPL-2.1-or-later",
+            "homepage": "https://www.7-zip.org/",
+            "license_url": "https://www.7-zip.org/license.txt",
+            "categories": ["Utility", "Archiving"],
+            "keywords": ["7z", "zip", "archive"],
+            "icon": "windows/7-zip.png",
+            "main": "7zFM.exe",
+            "summary": {
+                "en": "Small, fast archiver with its own 7z format",
+                "fr": "Archiveur léger et rapide, avec son propre format 7z"
+            },
+            "description": {
+                "en": "<p>7-Zip packs files tighter than most archivers with its 7z format, and opens ZIP, RAR, TAR, ISO and many more. This is the Windows version, with the 7-Zip File Manager you know.</p><p>The Files app already opens these archives on Raye; take 7-Zip if you want its own window and settings.</p>",
+                "fr": "<p>7-Zip compresse mieux que la plupart des archiveurs grâce à son format 7z, et ouvre les ZIP, RAR, TAR, ISO et bien d'autres. C'est la version Windows, avec le gestionnaire de fichiers 7-Zip que vous connaissez.</p><p>Fichiers ouvre déjà ces archives sur Raye ; prenez 7-Zip si vous tenez à sa fenêtre et à ses réglages.</p>"
+            },
+            "installer": {
+                "url": "https://github.com/ip7z/7zip/releases/download/26.06/7z2606-x64.exe",
+                "file": "7z2606-x64.exe",
+                "version": "26.06",
+                "size": 1659704,
+                "sha256": "9b697f65ecc2d9b0152f5ee96d72dde522a7827690349d9307935dacf40f42ec",
+                "silent": ["/S"],
+                "folder": "Program Files/7-Zip",
+                "installed_size": 5899436
+            }
+        },
+        {
+            "profile": "notepad-plus-plus",
+            "name": "Notepad++",
+            "developer": "Don Ho",
+            "license": "GPL-3.0-or-later",
+            "homepage": "https://notepad-plus-plus.org/",
+            "license_url": "https://www.gnu.org/licenses/gpl-3.0.html",
+            "categories": ["Development", "TextEditor"],
+            "keywords": ["notepad", "text", "editor", "code"],
+            "icon": "windows/notepad-plus-plus.png",
+            "main": "notepad++.exe",
+            "summary": {
+                "en": "Text and code editor with tabs and syntax colors",
+                "fr": "Éditeur de texte et de code, avec onglets et coloration"
+            },
+            "description": {
+                "en": "<p>Notepad++ edits plain text and source code in tabs, colors the syntax of some eighty languages, and finds or replaces across whole folders. Its plugins and macros come along.</p>",
+                "fr": "<p>Notepad++ édite le texte brut et le code source dans des onglets, colore la syntaxe d'environ quatre-vingts langages, et cherche ou remplace dans des dossiers entiers. Ses extensions et ses macros suivent.</p>"
+            },
+            "installer": {
+                "url": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.9.9.1/npp.8.9.9.1.Installer.x64.exe",
+                "file": "npp.8.9.9.1.Installer.x64.exe",
+                "version": "8.9.9.1",
+                "size": 7048536,
+                "sha256": "ce3267f5c4e7e42f847e00f4b20234da6150647203033cdde34a69593efc3152",
+                "silent": ["/S"],
+                "folder": "Program Files/Notepad++",
+                "installed_size": 20830944
+            }
+        },
+        {
+            "profile": "fl-studio",
+            "name": "FL Studio",
+            "developer": "Image-Line",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.image-line.com/fl-studio/",
+            "license_url": "https://www.image-line.com/legal/",
+            "categories": ["Audio", "AudioVideo", "Music"],
+            "keywords": ["daw", "music", "beats", "fruity loops"],
+            "icon": "windows/fl-studio.png",
+            "main": "FL64.exe",
+            "summary": {
+                "en": "Make music, from the first beat to the final mix",
+                "fr": "Faites de la musique, du premier beat au mixage final"
+            },
+            "description": {
+                "en": "<p>FL Studio is a full music studio: step sequencer, piano roll, mixer, and the plugins that come with it.</p><p>FL Studio is paid. The trial has every feature, but projects can only be reopened once you buy a license.</p>",
+                "fr": "<p>FL Studio est un studio de musique complet : séquenceur pas à pas, piano roll, table de mixage et les extensions fournies.</p><p>FL Studio est payant. L'essai a toutes les fonctions, mais on ne peut rouvrir ses projets qu'après avoir acheté une licence.</p>"
+            },
+            "installer": {
+                "url": "https://install.image-line.com/flstudio/flstudio_win64_26.1.7.5654.exe",
+                "file": "flstudio_win64_26.1.7.5654.exe",
+                "version": "26.1.7",
+                "size": 1106029776,
+                "sha256": "6ddf9f23a8a0d2f9b8b11b77b831fed09231586899faa185e1026cc0eea4edca",
+                "silent": ["/S"],
+                "folder": ["Program Files/Image-Line", "Program Files (x86)/Microsoft"],
+                "installed_size": 3057177366
+            }
+        },
+        {
+            "profile": "roblox-studio",
+            "name": "Roblox Studio",
+            "developer": "Roblox Corporation",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://create.roblox.com/",
+            "categories": ["Development"],
+            "keywords": ["roblox", "studio", "lua"],
+            "icon": "windows/roblox-studio.png",
+            "main": "RobloxStudioBeta.exe",
+            "summary": {
+                "en": "Build and publish your own Roblox experiences",
+                "fr": "Créez et publiez vos propres expériences Roblox"
+            },
+            "description": {
+                "en": "<p>Roblox Studio is where Roblox games are made: build the world, script it in Luau, test it, then publish it to Roblox. You need a Roblox account.</p><p>Its setup downloads the latest Studio from Roblox when it runs.</p>",
+                "fr": "<p>Roblox Studio, c'est là que se font les jeux Roblox : on construit le monde, on le programme en Luau, on le teste, puis on le publie sur Roblox. Il faut un compte Roblox.</p><p>Son installation télécharge le dernier Studio chez Roblox au moment où elle s'exécute.</p>"
+            },
+            "installer": {
+                "url": "https://setup.rbxcdn.com/version-63eb6055af4e4688-RobloxStudioInstaller.exe",
+                "file": "RobloxStudioInstaller.exe",
+                "size": 13751760,
+                "sha256": "945c6d4d7b58c193d3fe585d4309ddd7325d476c3cbb6924fd256eca0e5e2828",
+                "version": "0.747",
+                "folder": ["users/{user}/AppData/Local/Roblox/Versions", "Program Files (x86)/Microsoft"],
+                "installed_size": 2047217992
+            }
+        },
+        {
+            "profile": "discord",
+            "name": "Discord",
+            "native": "com.discordapp.Discord"
+        },
+        {
+            "profile": "steam",
+            "name": "Steam",
+            "native": "com.valvesoftware.Steam"
+        },
+        {
+            "profile": "obs",
+            "name": "OBS Studio",
+            "native": "com.obsproject.Studio"
+        },
+        {
+            "profile": "minecraft",
+            "name": "Minecraft",
+            "native": "com.mojang.Minecraft"
+        },
+        {
+            "profile": "spotify",
+            "name": "Spotify",
+            "native": "com.spotify.Client"
+        },
+        {
+            "profile": "chrome",
+            "name": "Google Chrome",
+            "native": "com.google.Chrome"
+        },
+        {
+            "profile": "vlc",
+            "name": "VLC",
+            "native": "org.videolan.VLC"
+        },
+        {
+            "profile": "epic-games",
+            "name": "Epic Games",
+            "native": "com.heroicgameslauncher.hgl"
+        }
+    ]
+}

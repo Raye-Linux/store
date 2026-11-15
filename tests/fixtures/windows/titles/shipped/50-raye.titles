@@ -1,0 +1,20 @@
+[winrar]
+name      = WinRAR
+state     = works
+tested_on = the test VM
+tested_at = 2026-11-12
+why_en    = Installs, extracts archives
+  and uninstalls here.
+why_fr    = S'installe, extrait les archives et se désinstalle ici.
+
+[studio]
+name   = Some Studio
+state  = untested
+why_en = Signing in has not worked here yet.
+why_fr = La connexion n'a pas encore marché ici.
+
+[pinball]
+name      = Old Pinball
+state     = blocked
+anticheat = none
+why_en    = It needs a store this system does not have.

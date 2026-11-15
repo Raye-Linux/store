@@ -1,0 +1,30 @@
+{
+ "hits": [
+  {
+   "name": "App",
+   "summary": "x",
+   "id": "io_github_newthing_App",
+   "app_id": "io.github.newthing.App",
+   "installs_last_month": 80,
+   "trending": 9.5,
+   "favorites_count": 2,
+   "verification_verified": false,
+   "updated_at": 1793300000,
+   "added_at": 1793300000
+  },
+  {
+   "name": "Steam",
+   "summary": "x",
+   "id": "com_valvesoftware_Steam",
+   "app_id": "com.valvesoftware.Steam",
+   "installs_last_month": 250000,
+   "trending": 2.1,
+   "favorites_count": 800,
+   "verification_verified": false,
+   "updated_at": 1793000000,
+   "added_at": 1490000000
+  }
+ ],
+ "page": 1,
+ "totalPages": 1
+}

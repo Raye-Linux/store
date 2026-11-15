@@ -1,0 +1,19 @@
+[Unit]
+Description=Update apps from Raye Store
+Documentation=https://github.com/Raye-Linux/store
+# like Windows: never on battery
+ConditionACPower=true
+
+[Service]
+Type=oneshot
+# "Update apps automatically" in Store settings (raye-storerc), on unless turned off
+ExecCondition=/bin/sh -c 'case "$$(kreadconfig6 --file raye-storerc --group Updates --key Automatic --default true)" in false|0|off|no) exit 1 ;; esac'
+# not on a metered connection (NetworkManager says 1 for yes, 3 for guessed yes)
+ExecCondition=/bin/sh -c 'case "$$(busctl --system get-property org.freedesktop.NetworkManager /org/freedesktop/NetworkManager org.freedesktop.NetworkManager Metered 2>/dev/null)" in "u 1"|"u 3") exit 1 ;; esac'
+# apps and the runtimes they share; system packages stay with Raye Update.
+# Offline is not an error: tomorrow tries again.
+ExecStart=-/usr/bin/flatpak update --system --noninteractive -y
+Nice=19
+CPUSchedulingPolicy=idle
+IOSchedulingClass=idle
+TimeoutStartSec=2h

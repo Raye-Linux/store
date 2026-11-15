@@ -1,0 +1,11 @@
+#!/bin/sh
+# What goes into raye-windows-ui, from what the build installed (see
+# raye-store.install): the windows and the raye-windows tool, once they
+# exist.
+set -e
+cd debian/tmp
+for path in usr/libexec/raye-windows-ui usr/bin/raye-windows; do
+    if [ -e "$path" ]; then
+        echo "$path"
+    fi
+done

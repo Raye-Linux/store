@@ -1,0 +1,86 @@
+#!/bin/sh
+# Plasma and KDE apps open Discover under this name. Measured in the image
+# of 2026-11-06, these are the four callers and nothing else asks for it:
+#   libKF6KIOWidgets  the "Get more Apps from Discover" button of the Open
+#                     with dialog -- plasma-discover --mime <type>
+#   xdg-desktop-portal-kde  the portal's app chooser, the same two arguments
+#   kcm_feedback      System Settings / User Feedback -- --feedback, a FLAG
+#   gwenview_importer --search <protocol>, and a findExecutable() on this
+#                     very name to decide whether to offer its button
+# Raye has no Discover; the same requests open the Store, on the app when
+# one is named. The update page of Discover is Raye Update, in Settings.
+# An appstream: link does not come through here at all: it is a scheme
+# handler, and org.raye.store.desktop claims it.
+#
+# What it cannot honour, it SAYS, and leaves a code behind. A shim that
+# drops a request and exits 0 is a button that does nothing with no trace
+# anywhere -- the click is the only witness and it is gone. Exit 3 means
+# "I understood none of it and opened the front page instead". Opening
+# something is not optional either: a click must never land on nothing.
+store=${RAYE_STORE:-raye-store}
+settings=${RAYE_SETTINGS:-raye-settings}
+me=${0##*/}
+
+app=
+mode=
+puzzled=
+
+cry() {
+    printf '%s: %s\n' "$me" "$1" >&2
+    puzzled=yes
+}
+
+while [ $# -gt 0 ]; do
+    case $1 in
+    # KDE's own options: the Store answers them better than a stub would
+    -h) exec "$store" --help ;;
+    --help|--help-all|--version) exec "$store" "$1" ;;
+    # Options carrying a value. Only --application and --mode change what
+    # opens; for the others the Store has nowhere to put the value, which
+    # is a front page on purpose, not a failure.
+    # The guard on $# is the whole point: `shift` past the end of the
+    # list is an error in a special builtin, so dash ENDS the script.
+    # `plasma-discover --feedback` died that way -- exit 2, nothing opened
+    # -- because --feedback was listed here and carries no value.
+    --application|--mode|--mime|--category|--search|--backends|--local-filename|--localfile)
+        if [ $# -lt 2 ]; then
+            cry "$1 was given without a value"
+        else
+            case $1 in
+            --application) app=$2 ;;
+            --mode) mode=$2 ;;
+            --local-filename|--localfile) cry "cannot install the local file $2" ;;
+            esac
+            shift
+        fi ;;
+    --application=*) app=${1#*=} ;;
+    --mode=*) mode=${1#*=} ;;
+    --mime=*|--category=*|--search=*|--backends=*) ;;
+    --local-filename=*|--localfile=*) cry "cannot install the local file ${1#*=}" ;;
+    # Flags: they ask Discover to print a list or to show a page of its own
+    --feedback|--listbackends|--listmodes|--offline-updates|--) ;;
+    -*) cry "unknown option $1" ;;
+    appstream:*) [ -z "$app" ] && app=$1 ;;
+    # apt://, snap://, a .flatpakref: real Discover arguments the Store has
+    # nowhere to put. Showing the front page as if that had been the
+    # request is the silence this whole file is about.
+    *) cry "cannot open \"$1\" in the Store" ;;
+    esac
+    shift
+done
+
+case $mode in
+[Uu]pdate)
+    exec "$settings" --page update ;;
+esac
+if [ -n "$app" ]; then
+    exec "$store" "$app"
+fi
+if [ -n "$puzzled" ]; then
+    # Not exec: the exit code is the only thing left to report with, and
+    # exec would hand it to the Store. One idle shell is the price of a
+    # failure that can be seen.
+    "$store"
+    exit 3
+fi
+exec "$store"

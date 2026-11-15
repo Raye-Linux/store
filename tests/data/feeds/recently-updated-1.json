@@ -1,0 +1,18 @@
+{
+ "hits": [
+  {
+   "name": "GIMP",
+   "summary": "x",
+   "id": "org_gimp_GIMP",
+   "app_id": "org.gimp.GIMP",
+   "installs_last_month": 120000,
+   "trending": 1.0,
+   "favorites_count": 400,
+   "verification_verified": true,
+   "updated_at": 1793400000,
+   "added_at": 1470000000
+  }
+ ],
+ "page": 1,
+ "totalPages": 1
+}

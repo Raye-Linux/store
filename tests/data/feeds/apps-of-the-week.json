@@ -1,0 +1,1 @@
+{"apps": [{"position": 3, "isFullscreen": false, "app_id": "org.videolan.VLC"}, {"position": 1, "isFullscreen": false, "app_id": "org.gimp.GIMP"}, {"position": 2, "isFullscreen": true, "app_id": "bad id"}, {"position": 2, "isFullscreen": true, "app_id": "org.kde.kdenlive"}]}

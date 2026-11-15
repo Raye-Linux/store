@@ -1,0 +1,12 @@
+[Unit]
+Description=Update apps from Raye Store every day
+Documentation=https://github.com/Raye-Linux/store
+
+[Timer]
+OnCalendar=daily
+# a day missed (the PC was off) runs at the next session, within the hour
+Persistent=true
+RandomizedDelaySec=1h
+
+[Install]
+WantedBy=timers.target

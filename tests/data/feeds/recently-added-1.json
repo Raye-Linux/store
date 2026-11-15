@@ -1,0 +1,18 @@
+{
+ "hits": [
+  {
+   "name": "App",
+   "summary": "x",
+   "id": "io_github_newthing_App",
+   "app_id": "io.github.newthing.App",
+   "installs_last_month": 80,
+   "trending": 9.5,
+   "favorites_count": 2,
+   "verification_verified": false,
+   "updated_at": 1793300000,
+   "added_at": 1793300000
+  }
+ ],
+ "page": 1,
+ "totalPages": 1
+}

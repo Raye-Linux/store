@@ -1,0 +1,22 @@
+// Raye Store: the people who run this computer (group sudo) install,
+// remove and update apps without typing their password, as long as they
+// are sitting at it.
+polkit.addRule(function (action, subject) {
+    if (!subject.isInGroup("sudo"))
+        return polkit.Result.NOT_HANDLED;
+    // updates of apps already installed, from the remotes already set up:
+    // also from the daily update timer, which runs outside the session
+    if (action.id == "org.freedesktop.Flatpak.app-update" ||
+        action.id == "org.freedesktop.Flatpak.runtime-update" ||
+        action.id == "org.freedesktop.Flatpak.appstream-update")
+        return polkit.Result.YES;
+    if (!subject.local || !subject.active)
+        return polkit.Result.NOT_HANDLED;
+    if (action.id.indexOf("org.freedesktop.Flatpak.app-") === 0 ||
+        action.id.indexOf("org.freedesktop.Flatpak.runtime-") === 0 ||
+        action.id == "org.freedesktop.packagekit.package-install" ||
+        action.id == "org.freedesktop.packagekit.package-remove" ||
+        action.id == "org.raye.store.extra")        // apps Raye offers itself
+        return polkit.Result.YES;
+    return polkit.Result.NOT_HANDLED;
+});

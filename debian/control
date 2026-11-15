@@ -1,0 +1,46 @@
+Source: raye-store
+Section: admin
+Priority: optional
+Maintainer: techoraye <190692880+techoraye@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13), cmake, extra-cmake-modules, ninja-build,
+               pkgconf, python3,
+               qt6-base-dev, qt6-declarative-dev, libkf6coreaddons-dev,
+               libkf6i18n-dev, libkf6notifications-dev, libkirigami-dev,
+               libkf6dbusaddons-dev, libkf6windowsystem-dev, gettext,
+               kirigami-addons-dev, libappstreamqt-dev, libappstream-dev,
+               libflatpak-dev, libpackagekitqt6-dev,
+               qml6-module-org-kde-kirigami, qml6-module-qtquick-controls,
+               qml6-module-qtquick-layouts, qml6-module-qtquick-templates,
+               qml6-module-qtquick-effects,
+               qml6-module-org-kde-kirigamiaddons-components,
+               qml6-module-org-kde-kirigamiaddons-formcard
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Vcs-Git: https://github.com/Raye-Linux/store.git
+
+Package: raye-store
+Architecture: amd64
+Depends: flatpak, packagekit, appstream, polkitd, kio-extras, kde-cli-tools, raye-style,
+         qml6-module-org-kde-kirigami, qml6-module-qtquick-layouts,
+         qml6-module-qtquick-controls, qml6-module-qtquick-effects,
+         qml6-module-org-kde-kirigamiaddons-components,
+         qml6-module-org-kde-kirigamiaddons-formcard,
+         qt6-image-formats-plugins,
+         ${shlibs:Depends}, ${misc:Depends}
+Conflicts: plasma-discover
+# its Windows setups run out of sight through this runner's --args
+Breaks: raye-windows-apps (<< 0.5.5~beta1)
+Description: Raye Linux app store
+ Finds, installs, removes and updates apps: Flathub apps and the
+ system's own packages in one list, with their descriptions and
+ screenshots. App updates live here, system updates in Raye Update.
+
+Package: raye-windows-ui
+Architecture: amd64
+Depends: raye-store (= ${binary:Version}),
+         ${shlibs:Depends}, ${misc:Depends}
+Description: Windows programs on Raye Linux: windows and tools
+ What a Windows program shows around itself on Raye Linux: the window
+ while its space is set up, the window while it is removed, the one
+ that says it closed unexpectedly, and the raye-windows tool that lists
+ and uninstalls installed Windows programs.

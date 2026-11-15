@@ -1,0 +1,11 @@
+[Unit]
+Description=Keep the app catalog of Raye Store fresh
+
+[Timer]
+# soon after the first boot, so the Store is full the first time it opens
+OnBootSec=2min
+OnUnitActiveSec=12h
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

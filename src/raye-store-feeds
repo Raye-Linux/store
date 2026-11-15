@@ -1,0 +1,397 @@
+#!/usr/bin/python3 -I
+"""Fetch the lists the Store sorts and fills its rows with.
+
+    raye-store-feeds fetch [--out DIR]
+    raye-store-feeds publish SRC DST
+
+"fetch" runs as an unprivileged, throwaway user (raye-store-catalog.service)
+and keeps its files in its own cache folder. "publish" runs as root right
+after it and copies them to /var/cache/raye-store/feeds, where every user's
+Store reads them. The copy reads each file again, checks it and writes it
+fresh, so nothing the fetcher left there (a link, a pipe, a huge file) is
+followed or published as it is.
+
+Files, all JSON:
+    popular.json, trending.json, recently-updated.json, recently-added.json
+        lists of {id, installs_last_month, trending, favorites, verified,
+        updated_at, added_at}, first two pages of 250 from Flathub
+    picks.json      {"day": id, "week": [ids]}, Flathub's app picks
+    ratings.json    ODRS star counts, keys without ".desktop"
+    meta.json       when each file was last fetched (seconds since 1970)
+
+Every request is anonymous and gives up after 10 s. A list that fails to
+download or does not read right leaves the last good file in place, so the
+Store keeps working offline. Files are replaced in one rename.
+"""
+
+import argparse
+import datetime
+import json
+import os
+import re
+import stat
+import sys
+import tempfile
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+
+FLATHUB = "https://flathub.org/api/v2"
+ODRS = "https://odrs.gnome.org/1.0/reviews/api"
+TIMEOUT = 10.0
+PAGES = 2
+PER_PAGE = 250
+# Flathub pages are about 1 MB, the ODRS ratings about 2 MB
+MAX_RESPONSE = 16 * 1024 * 1024
+# what the Store accepts to read (src/catalog.cpp)
+MAX_FILE = 32 * 1024 * 1024
+USER_AGENT = "raye-store-feeds/1.0"
+
+COLLECTIONS = ("popular", "trending", "recently-updated", "recently-added")
+FILES = tuple(f"{name}.json" for name in COLLECTIONS) + (
+    "picks.json", "ratings.json", "meta.json")
+
+# Flatpak application ids; ODRS also lists plain desktop ids ("0ad")
+APP_ID = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_+-]*(\.[A-Za-z0-9_+-]+)+$")
+DESKTOP_ID = re.compile(r"^[A-Za-z0-9_][A-Za-z0-9_+-]*(\.[A-Za-z0-9_+-]+)*$")
+MAX_ID = 255
+
+
+class FetchError(Exception):
+    pass
+
+
+def log(message):
+    print(message, flush=True)
+
+
+def app_id(value, pattern=APP_ID):
+    """The id without ".desktop" if it looks like one, else None."""
+    if not isinstance(value, str) or len(value) > MAX_ID:
+        return None
+    if value.endswith(".desktop"):
+        value = value[: -len(".desktop")]
+    return value if pattern.match(value) else None
+
+
+def number(value):
+    """An int or float from JSON, never a bool, NaN or infinity."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    if value != value or value in (float("inf"), float("-inf")):
+        return None
+    return value
+
+
+def count(value):
+    n = number(value)
+    return int(n) if n is not None and 0 <= n < 1e12 else 0
+
+
+def timestamp(value):
+    """Seconds since 1970 from seconds, milliseconds or ISO text."""
+    n = number(value)
+    if n is not None:
+        if n <= 0:
+            return None
+        return int(n / 1000 if n > 1e11 else n)
+    if isinstance(value, str) and value:
+        try:
+            d = datetime.datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        if d.tzinfo is None:
+            d = d.replace(tzinfo=datetime.timezone.utc)
+        t = int(d.timestamp())
+        return t if t > 0 else None
+    return None
+
+
+def get_json(url, timeout):
+    """GET url and parse it; FetchError on anything that goes wrong."""
+    request = urllib.request.Request(url, headers={
+        "User-Agent": USER_AGENT, "Accept": "application/json"})
+    deadline = time.monotonic() + timeout
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            length = response.headers.get("Content-Length")
+            if length and length.isdigit() and int(length) > MAX_RESPONSE:
+                raise FetchError("too big")
+            chunks, size = [], 0
+            while True:
+                if time.monotonic() > deadline:
+                    raise FetchError("timed out")
+                chunk = response.read(65536)
+                if not chunk:
+                    break
+                size += len(chunk)
+                if size > MAX_RESPONSE:
+                    raise FetchError("too big")
+                chunks.append(chunk)
+    except urllib.error.HTTPError as e:
+        raise FetchError(f"HTTP {e.code}") from None
+    except (urllib.error.URLError, OSError) as e:
+        reason = getattr(e, "reason", e)
+        raise FetchError(f"no connection ({reason})") from None
+    except ValueError as e:  # a malformed URL or response line
+        raise FetchError(str(e)) from None
+    try:
+        return json.loads(b"".join(chunks))
+    except (ValueError, RecursionError):
+        raise FetchError("not readable") from None
+
+
+def collection_entry(hit):
+    if not isinstance(hit, dict):
+        return None
+    ident = app_id(hit.get("app_id"))
+    if ident is None:
+        return None
+    trending = number(hit.get("trending"))
+    return {
+        "id": ident,
+        "installs_last_month": count(hit.get("installs_last_month")),
+        "trending": float(trending) if trending is not None else None,
+        "favorites": count(hit.get("favorites_count", hit.get("favorites"))),
+        "verified": hit.get("verification_verified") is True
+                    or hit.get("verified") is True,
+        "updated_at": timestamp(hit.get("updated_at")),
+        "added_at": timestamp(hit.get("added_at")),
+    }
+
+
+def fetch_collection(api, name, timeout):
+    entries, seen = [], set()
+    for page in range(1, PAGES + 1):
+        query = urllib.parse.urlencode({"page": page, "per_page": PER_PAGE})
+        data = get_json(f"{api}/collection/{name}?{query}", timeout)
+        if not isinstance(data, dict) or not isinstance(data.get("hits"), list):
+            raise FetchError("not a collection")
+        for hit in data["hits"]:
+            entry = collection_entry(hit)
+            if entry and entry["id"] not in seen:
+                seen.add(entry["id"])
+                entries.append(entry)
+        pages = number(data.get("totalPages"))
+        if not data["hits"] or (pages is not None and page >= pages):
+            break
+    return entries
+
+
+def fetch_picks(api, today, timeout, old):
+    """Today's pick and the week's; a part that fails keeps its old value."""
+    picks = {"day": None, "week": []}
+    if isinstance(old, dict):
+        picks["day"] = app_id(old.get("day"))
+        if isinstance(old.get("week"), list):
+            picks["week"] = [i for i in map(app_id, old["week"]) if i]
+    failures = []
+    try:
+        day = get_json(f"{api}/app-picks/app-of-the-day/{today}", timeout)
+        if not isinstance(day, dict):
+            raise FetchError("not readable")
+        picks["day"] = app_id(day.get("app_id"))
+    except FetchError as e:
+        failures.append(f"day: {e}")
+    try:
+        week = get_json(f"{api}/app-picks/apps-of-the-week/{today}", timeout)
+        apps = week.get("apps") if isinstance(week, dict) else None
+        if not isinstance(apps, list):
+            raise FetchError("not readable")
+        ordered = []
+        for i, a in enumerate(apps):
+            if isinstance(a, dict) and app_id(a.get("app_id")):
+                position = number(a.get("position"))
+                ordered.append((position if position is not None else 1e9, i,
+                                app_id(a["app_id"])))
+        ordered.sort()
+        week_ids = []
+        for _, _, ident in ordered:
+            if ident not in week_ids:
+                week_ids.append(ident)
+        picks["week"] = week_ids
+    except FetchError as e:
+        failures.append(f"week: {e}")
+    if len(failures) == 2:
+        raise FetchError(", ".join(failures))
+    return picks, failures
+
+
+def fetch_ratings(odrs, timeout):
+    data = get_json(f"{odrs}/ratings", timeout)
+    if not isinstance(data, dict):
+        raise FetchError("not readable")
+    ratings = {}
+    for key, value in data.items():
+        ident = app_id(key, DESKTOP_ID)
+        if ident is None or not isinstance(value, dict):
+            continue
+        stars = {f"star{k}": count(value.get(f"star{k}")) for k in range(6)}
+        stars["total"] = count(value.get("total"))
+        # "x" and "x.desktop" both listed: the one with more votes
+        if ident in ratings and ratings[ident]["total"] >= stars["total"]:
+            continue
+        ratings[ident] = stars
+    return ratings
+
+
+def write_json(directory, name, data):
+    """Replace directory/name in one rename; readable by everyone."""
+    fd, tmp = tempfile.mkstemp(prefix=f".{name}.", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+            f.write("\n")
+            f.flush()
+            os.fsync(f.fileno())
+        os.chmod(tmp, 0o644)
+        os.replace(tmp, os.path.join(directory, name))
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def read_json(directory, name, max_size=MAX_FILE):
+    """A file of ours, read without following links; None if it is not one."""
+    try:
+        dir_fd = os.open(directory, os.O_RDONLY | os.O_DIRECTORY)
+    except OSError:
+        return None
+    try:
+        fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK,
+                     dir_fd=dir_fd)
+    except OSError:
+        os.close(dir_fd)
+        return None
+    try:
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode) or info.st_size > max_size:
+            return None
+        with os.fdopen(fd, "rb") as f:
+            fd = None
+            raw = f.read(max_size + 1)
+        if len(raw) > max_size:
+            return None
+        return json.loads(raw)
+    except (OSError, ValueError, RecursionError):
+        return None
+    finally:
+        if fd is not None:
+            os.close(fd)
+        os.close(dir_fd)
+
+
+def fetch(out, api=FLATHUB, odrs=ODRS, today=None, timeout=TIMEOUT, now=None):
+    os.makedirs(out, mode=0o755, exist_ok=True)
+    today = today or datetime.date.today().isoformat()
+    meta = read_json(out, "meta.json")
+    meta = {k: v for k, v in meta.items() if isinstance(k, str)
+            and isinstance(v, int) and not isinstance(v, bool)} \
+        if isinstance(meta, dict) else {}
+    got = 0
+
+    def done(name, data, summary):
+        nonlocal got
+        write_json(out, f"{name}.json", data)
+        meta[name] = int(now if now is not None else time.time())
+        got += 1
+        log(f"{name}: {summary}")
+
+    for name in COLLECTIONS:
+        try:
+            entries = fetch_collection(api, name, timeout)
+        except FetchError as e:
+            log(f"{name}: {e}, kept the last file")
+            continue
+        if not entries:
+            log(f"{name}: empty, kept the last file")
+            continue
+        done(name, entries, f"{len(entries)} apps")
+    try:
+        picks, failures = fetch_picks(api, today, timeout, read_json(out, "picks.json"))
+        note = "; kept the old " + ", ".join(failures) if failures else ""
+        done("picks", picks, f"day {picks['day']}, {len(picks['week'])} of the week{note}")
+    except FetchError as e:
+        log(f"picks: {e}, kept the last file")
+    try:
+        ratings = fetch_ratings(odrs, timeout)
+        if ratings:
+            done("ratings", ratings, f"{len(ratings)} apps")
+        else:
+            log("ratings: empty, kept the last file")
+    except FetchError as e:
+        log(f"ratings: {e}, kept the last file")
+    write_json(out, "meta.json", meta)
+    return got
+
+
+def valid(name, data):
+    """The shape the Store reads, so a broken file is never published."""
+    if name in (f"{c}.json" for c in COLLECTIONS):
+        return isinstance(data, list) and all(
+            isinstance(e, dict) and app_id(e.get("id")) for e in data)
+    if name == "picks.json":
+        return (isinstance(data, dict) and isinstance(data.get("week", []), list)
+                and (data.get("day") is None or app_id(data.get("day")) is not None))
+    return isinstance(data, dict)
+
+
+def publish(src, dst):
+    """Copy the fetcher's files to the folder every user reads."""
+    os.makedirs(dst, mode=0o755, exist_ok=True)
+    os.chmod(dst, 0o755)
+    copied = 0
+    for name in FILES:
+        data = read_json(src, name)
+        if data is None:
+            continue
+        if not valid(name, data):
+            log(f"publish: {name} does not read right, kept the last one")
+            continue
+        write_json(dst, name, data)
+        copied += 1
+    log(f"publish: {copied} files in {dst}")
+    return copied
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(prog="raye-store-feeds")
+    sub = parser.add_subparsers(dest="command", required=True)
+    f = sub.add_parser("fetch", help="download the feeds")
+    f.add_argument("--out", default=os.environ.get("CACHE_DIRECTORY", "").split(":")[0],
+                   help="folder to write to (default: $CACHE_DIRECTORY)")
+    f.add_argument("--api", default=FLATHUB, help=argparse.SUPPRESS)
+    f.add_argument("--odrs", default=ODRS, help=argparse.SUPPRESS)
+    f.add_argument("--today", help=argparse.SUPPRESS)
+    f.add_argument("--timeout", type=float, default=TIMEOUT, help=argparse.SUPPRESS)
+    p = sub.add_parser("publish", help="copy the feeds where the Store reads them")
+    p.add_argument("src")
+    p.add_argument("dst")
+    args = parser.parse_args(argv)
+
+    if args.command == "fetch":
+        if not args.out:
+            parser.error("no folder: give --out or run from raye-store-catalog.service")
+        if args.today and not re.match(r"^\d{4}-\d{2}-\d{2}$", args.today):
+            parser.error("--today takes YYYY-MM-DD")
+        try:
+            fetch(args.out.rstrip("/") or "/", args.api.rstrip("/"),
+                  args.odrs.rstrip("/"), args.today, args.timeout)
+        except OSError as e:
+            print(f"raye-store-feeds: cannot write to {args.out}: {e.strerror}", file=sys.stderr)
+            return 1
+        return 0
+    try:
+        publish(args.src, args.dst)
+    except OSError as e:
+        print(f"raye-store-feeds: cannot write to {args.dst}: {e.strerror}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

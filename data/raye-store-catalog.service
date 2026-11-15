@@ -1,0 +1,40 @@
+[Unit]
+Description=Refresh the app catalog of Raye Store
+Documentation=https://github.com/Raye-Linux/store
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=10min
+# The downloads run as a throwaway user in its own cache folder
+# (/var/cache/private/raye-store-feeds, closed to everyone else). The two
+# lines starting with "+" run as root: the catalog update, and the copy of
+# the checked files to /var/cache/raye-store/feeds, readable by all.
+DynamicUser=yes
+CacheDirectory=raye-store-feeds
+# offline is not an error: the next run tries again
+ExecStart=+-/usr/bin/flatpak update --appstream --system --noninteractive
+ExecStart=/usr/libexec/raye-store-feeds fetch --out /var/cache/raye-store-feeds
+ExecStartPost=+/usr/libexec/raye-store-feeds publish /var/cache/raye-store-feeds /var/cache/raye-store/feeds
+PrivateDevices=yes
+PrivateUsers=yes
+ProtectHostname=yes
+ProtectClock=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+UMask=0022

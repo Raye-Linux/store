@@ -1,0 +1,410 @@
+#!/usr/bin/python3 -I
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""Installs or removes a Windows program Raye Store offers.
+
+    raye-store-windows install windows:<space>
+    raye-store-windows remove windows:<space>
+
+Runs as the user: a program goes in the user's own space. Only programs
+listed in windows-programs.json can be installed. Their maker's installer
+is downloaded over https, must match the SHA-256 written in the list, and
+runs under its own file name, so the runner finds its profile and its
+space. Then the space has to hold the program, or the install failed.
+
+A setup the list gives quiet switches ("silent") runs with them, out of
+sight; the others open their own window ("phase setup"). While a setup
+runs, how far it is comes from the bytes written in the program's
+folders ("folder", one or a list, under drive_c) against what the list
+says they take once installed ("installed_size").
+
+For the Store's progress bar it prints, one a line:
+    phase downloading|installing|setup|removing
+    progress <0-100>
+    bytes <done> <total>
+While it downloads, a line "cancel" on stdin stops it (exit code 3).
+"""
+
+import hashlib
+import json
+import os
+import re
+import select
+import shutil
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+import urllib.error
+import urllib.request
+
+CATALOG = os.environ.get("RAYE_STORE_WINDOWS_DATA") or "/usr/share/raye-store/windows-programs.json"
+RUNNER = os.environ.get("RAYE_RUN_WINDOWS") or "raye-run-windows"
+TOOL = os.environ.get("RAYE_WINDOWS_TOOL") or "raye-windows"
+REF = re.compile(r"^windows:([a-z0-9][a-z0-9-]*)$")
+SHA256 = re.compile(r"^[0-9a-f]{64}$")
+FILE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*\.(exe|msi)$")
+# a switch the way setups take them: /S, /VERYSILENT, -silent, /qn
+SWITCH = re.compile(r"^[/-][A-Za-z][A-Za-z0-9_-]*(=[A-Za-z0-9._-]+)?$")
+# a folder under drive_c, {user} standing for the user's own
+FOLDER = re.compile(r"^(?!.*\.\.)[A-Za-z0-9{}][A-Za-z0-9 ._(){}+-]*(/[A-Za-z0-9 ._(){}+-]+)*$")
+MAX = re.compile(r"^[A-Za-z0-9][A-Za-z0-9 ._+-]*\.exe$")
+ICONS = os.path.dirname(CATALOG) + "/icons"
+MAX_SIZE = 4 << 30
+# a setup that runs out of sight: its leftovers (a web view's updater) are
+# stopped soon after it ends, which also writes the registry. A setup in
+# its own window may start its program at the end: that one is left alone
+QUIET_SETTLE = "4"
+WINDOW_SETTLE = "35"
+
+
+def say(line):
+    print(line, flush=True)
+
+
+def entry_for(space, path=CATALOG):
+    with open(path, encoding="utf-8") as f:
+        programs = json.load(f).get("programs", [])
+    for p in programs:
+        if p.get("profile") != space:
+            continue
+        inst = p.get("installer") or {}
+        if not str(inst.get("url", "")).startswith("https://"):
+            raise ValueError("%s has no installer to download" % space)
+        if not SHA256.match(str(inst.get("sha256", ""))):
+            raise ValueError("the list has no SHA-256 for %s" % space)
+        if not FILE.match(str(inst.get("file", ""))):
+            raise ValueError("the list has no file name for %s" % space)
+        silent = inst.get("silent", [])
+        if not isinstance(silent, list) or not all(isinstance(w, str) and SWITCH.match(w) for w in silent):
+            raise ValueError("the list has odd setup switches for %s" % space)
+        main = p.get("main", "")
+        if main and not (isinstance(main, str) and MAX.match(main)):
+            raise ValueError("the list has an odd main program for %s" % space)
+        folders = inst.get("folder", [])
+        folders = [folders] if isinstance(folders, str) else folders
+        if not isinstance(folders, list) or not all(isinstance(f, str) and FOLDER.match(f) for f in folders):
+            raise ValueError("the list has an odd folder for %s" % space)
+        return p
+    raise LookupError("%s is not offered by the Store" % space)
+
+
+class Cancelled(Exception):
+    pass
+
+
+class CancelWatch:
+    def __init__(self, fd):
+        self.fd = fd
+        self.buffer = b""
+
+    def requested(self):
+        if self.fd is None:
+            return False
+        try:
+            ready, _, _ = select.select([self.fd], [], [], 0)
+            if not ready:
+                return False
+            chunk = os.read(self.fd, 256)
+        except (OSError, ValueError):
+            self.fd = None
+            return False
+        if not chunk:
+            self.fd = None
+            return False
+        self.buffer = (self.buffer + chunk)[-1024:]
+        return b"cancel\n" in self.buffer
+
+
+# some makers' download hosts (FL Studio's, Roblox's) answer 403 to
+# urllib's own "Python-urllib" agent
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:140.0) Gecko/20100101 Firefox/140.0",
+    "Accept": "*/*",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
+class HttpsOnly(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        if not newurl.startswith("https://"):
+            raise urllib.error.URLError("redirect away from https refused")
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
+def download(installer, dest, opener=None, report=say, watch=None):
+    """Writes the installer to dest, or raises; dest never holds a file
+    that does not match the list."""
+    opener = opener or urllib.request.build_opener(HttpsOnly)
+    expected = installer["sha256"]
+    declared = int(installer.get("size") or 0)
+    limit = declared if declared > 0 else MAX_SIZE
+    digest = hashlib.sha256()
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(dest), suffix=".part")
+    try:
+        size, shown = 0, -1
+        with os.fdopen(fd, "wb") as out, opener.open(urllib.request.Request(installer["url"], headers=HEADERS), timeout=60) as resp:
+            try:
+                total = int(resp.headers.get("Content-Length", 0))
+            except (TypeError, ValueError, AttributeError):
+                total = 0
+            total = total if total > 0 else declared
+            if total > limit:
+                raise ValueError("the download is bigger than the list says")
+            while chunk := resp.read(1 << 16):
+                if watch is not None and watch.requested():
+                    raise Cancelled()
+                size += len(chunk)
+                if size > limit:
+                    raise ValueError("the download is bigger than the list says")
+                digest.update(chunk)
+                out.write(chunk)
+                percent = size * 100 // total if total else size >> 20
+                if percent != shown:
+                    shown = percent
+                    report("bytes %d %d" % (size, total if total >= size else 0))
+                    if total:
+                        report("progress %d" % percent)
+        if digest.hexdigest() != expected:
+            raise ValueError("the download does not match the SHA-256 in the list")
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, dest)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
+
+
+def programs_in(space, run=subprocess.run):
+    out = run([TOOL, "list", space, "--json"], capture_output=True, text=True, stdin=subprocess.DEVNULL)
+    if out.returncode != 0:
+        return None
+    try:
+        found = json.loads(out.stdout or "[]")
+    except ValueError:
+        return None
+    return found if isinstance(found, list) else None
+
+
+def cache_dir():
+    base = os.environ.get("XDG_CACHE_HOME") or os.path.join(os.path.expanduser("~"), ".cache")
+    path = os.path.join(base, "raye-store", "windows")
+    os.makedirs(path, mode=0o700, exist_ok=True)
+    return path
+
+
+def space_dir(space):
+    base = os.environ.get("XDG_DATA_HOME") or os.path.join(os.path.expanduser("~"), ".local", "share")
+    return os.path.join(base, "raye", "windows", space)
+
+
+def folder_bytes(path):
+    """bytes of the files under path, 0 while it is not there"""
+    total = 0
+    stack = [path]
+    while stack:
+        try:
+            with os.scandir(stack.pop()) as it:
+                for e in it:
+                    try:
+                        if e.is_dir(follow_symlinks=False):
+                            stack.append(e.path)
+                        elif e.is_file(follow_symlinks=False):
+                            total += e.stat(follow_symlinks=False).st_size
+                    except OSError:
+                        pass
+        except OSError:
+            pass
+    return total
+
+
+class SetupProgress:
+    """How far a setup is, from what it wrote against what the program
+    takes once installed. It never goes back, and while the setup does
+    something it cannot be seen doing (a download of its own, the
+    registry) it still creeps on a little, never past 99."""
+
+    CREEP_EVERY = 3.0   # seconds without news before a step
+    CREEP_AHEAD = 8     # how far past the measure a creep may go
+
+    def __init__(self, expected):
+        self.expected = max(1, int(expected))
+        self.shown = 0
+        self.last = None
+
+    def update(self, written, now):
+        measured = min(99, written * 100 // self.expected)
+        if measured > self.shown:
+            self.shown, self.last = measured, now
+        elif self.last is None:
+            self.last = now
+        elif now - self.last >= self.CREEP_EVERY and self.shown < min(99, measured + self.CREEP_AHEAD):
+            self.shown, self.last = self.shown + 1, now
+        return self.shown
+
+
+def watch_setup(proc, folders, expected, report=say, tick=1.0, clock=time.monotonic, measure=folder_bytes):
+    """reports progress while proc runs; returns its exit code"""
+    folders = [folders] if isinstance(folders, str) else list(folders or [])
+    progress = SetupProgress(expected) if folders and expected else None
+    shown = -1
+    while True:
+        try:
+            return proc.wait(timeout=tick)
+        except subprocess.TimeoutExpired:
+            pass
+        if progress is None:
+            continue
+        percent = progress.update(sum(measure(f) for f in folders), clock())
+        if percent != shown:
+            shown = percent
+            report("progress %d" % percent)
+
+
+def install(space, program, run=subprocess.run, opener=None, watch=None, popen=subprocess.Popen, tick=1.0):
+    inst = program["installer"]
+    say("phase downloading")
+    work = tempfile.mkdtemp(dir=cache_dir())
+    try:
+        # the file keeps the maker's name: the runner picks the profile,
+        # and with it the space, from that name
+        setup = os.path.join(work, inst["file"])
+        download(inst, setup, opener=opener, watch=watch)
+        silent = inst.get("silent") or []
+        argv = [RUNNER, setup]
+        env = dict(os.environ)
+        if silent:
+            argv += ["--args", " ".join(silent)]
+            env.update(RAYE_WINDOWS_SETTLE=QUIET_SETTLE, RAYE_WINDOWS_SETTLE_END="stop")
+            say("phase installing")
+        else:
+            env.update(RAYE_WINDOWS_SETTLE=WINDOW_SETTLE)
+            say("phase setup")
+        folders = inst.get("folder") or []
+        folders = [folders] if isinstance(folders, str) else folders
+        user = os.environ.get("USER") or os.path.basename(os.path.expanduser("~"))
+        folders = [os.path.join(space_dir(space), "drive_c", f.replace("{user}", user)) for f in folders]
+        proc = popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL, env=env)
+        rc = watch_setup(proc, folders, int(inst.get("installed_size") or 0), tick=tick)
+        found = programs_in(space, run)
+        if found:
+            try:
+                sharpen_icons(program, found)
+            except OSError:
+                pass
+            say("progress 100")
+        if found:
+            return 0
+        name = program.get("name") or space
+        if rc != 0:
+            print("raye-store-windows: the setup of %s stopped before the end" % name, file=sys.stderr)
+        else:
+            print("raye-store-windows: the setup of %s closed without installing it" % name, file=sys.stderr)
+        return 1
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
+def png_size(path):
+    """width of a PNG, 0 when it is none"""
+    try:
+        with open(path, "rb") as f:
+            head = f.read(24)
+    except OSError:
+        return 0
+    if head[:8] != b"\x89PNG\r\n\x1a\n" or head[12:16] != b"IHDR":
+        return 0
+    return int.from_bytes(head[16:20], "big")
+
+
+def icons_dir():
+    base = os.environ.get("XDG_DATA_HOME") or os.path.join(os.path.expanduser("~"), ".local", "share")
+    return os.path.join(base, "icons", "hicolor")
+
+
+def desktop_icon(path):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            text = f.read(64 * 1024)
+    except OSError:
+        return "", ""
+    icon = re.search(r"^Icon=([A-Za-z0-9._-]+)$", text, re.M)
+    return (icon.group(1) if icon else ""), text
+
+
+def sharpen_icons(program, found, icons=None):
+    """Some programs carry only small icons (7-Zip's largest is 48 px):
+    the Start menu and the taskbar would blow them up. The entry of the
+    program's main exe then gets the list's own bigger picture too."""
+    main = (program.get("main") or "").lower()
+    picture = program.get("icon") or ""
+    if not main or not picture.endswith(".png") or ".." in picture:
+        return []
+    picture = picture if picture.startswith("/") else os.path.join(ICONS, picture)
+    wide = png_size(picture)
+    icons = icons or icons_dir()
+    placed = []
+    for p in found:
+        for desktop in p.get("desktopFiles") or []:
+            name, text = desktop_icon(desktop)
+            if not name or not name.startswith("raye-win-") or "\\" + main not in text.lower():
+                continue
+            have = max([s for s in (256, 128, 64, 48, 32)
+                        if os.path.exists(os.path.join(icons, "%dx%d" % (s, s), "apps", name + ".png"))] or [0])
+            if wide <= have:
+                continue
+            dest = os.path.join(icons, "%dx%d" % (wide, wide), "apps", name + ".png")
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            shutil.copyfile(picture, dest + ".new")
+            os.replace(dest + ".new", dest)
+            placed.append(dest)
+    return placed
+
+
+def remove(space, run=subprocess.run):
+    say("phase removing")
+    found = programs_in(space, run)
+    if found is None:
+        print("raye-store-windows: could not read what is installed in %s" % space, file=sys.stderr)
+        return 1
+    rc = 0
+    for p in found:
+        if not p.get("removable", True) or not p.get("key"):
+            continue
+        r = run([TOOL, "uninstall", space, p["key"], "--json"], capture_output=True, text=True,
+                stdin=subprocess.DEVNULL)
+        if r.returncode != 0:
+            print("raye-store-windows: %s was not uninstalled" % (p.get("name") or p["key"]), file=sys.stderr)
+            rc = 1
+    return rc
+
+
+def stdin_fd():
+    try:
+        return sys.stdin.fileno()
+    except (AttributeError, OSError, ValueError):
+        return None
+
+
+def main(argv):
+    m = REF.match(argv[2]) if len(argv) == 3 else None
+    if not m or argv[1] not in ("install", "remove"):
+        print("usage: raye-store-windows install|remove windows:<space>", file=sys.stderr)
+        return 2
+    space = m.group(1)
+    if argv[1] == "remove":
+        return remove(space)
+    try:
+        program = entry_for(space)
+        return install(space, program, watch=CancelWatch(stdin_fd()))
+    except Cancelled:
+        print("raye-store-windows: cancelled", file=sys.stderr)
+        return 3
+    except (OSError, ValueError, LookupError) as e:
+        print("raye-store-windows: %s" % e, file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

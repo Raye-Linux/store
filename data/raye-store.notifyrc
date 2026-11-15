@@ -1,0 +1,26 @@
+[Global]
+IconName=system-software-install
+Comment=Store
+Comment[fr]=Store
+DesktopEntry=org.raye.store
+
+[Event/working]
+Name=Still installing
+Name[fr]=Installation en cours
+Comment=The window was closed while apps install
+Comment[fr]=La fenêtre a été fermée pendant une installation
+Action=Popup
+
+[Event/ready]
+Name=App ready
+Name[fr]=Application prête
+Comment=An app finished installing
+Comment[fr]=Une application a fini de s'installer
+Action=Popup
+
+[Event/failed]
+Name=Install failed
+Name[fr]=Échec de l'installation
+Comment=An install, update or removal did not work
+Comment[fr]=Une installation, une mise à jour ou une suppression n'a pas fonctionné
+Action=Popup

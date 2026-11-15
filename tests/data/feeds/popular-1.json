@@ -1,0 +1,72 @@
+{
+ "hits": [
+  {
+   "name": "firefox",
+   "summary": "x",
+   "id": "org_mozilla_firefox",
+   "app_id": "org.mozilla.firefox",
+   "installs_last_month": 412000,
+   "trending": 1.4,
+   "favorites_count": 900,
+   "verification_verified": true,
+   "updated_at": 1793318400,
+   "added_at": 1500000000
+  },
+  {
+   "name": "VLC",
+   "summary": "x",
+   "id": "org_videolan_VLC",
+   "app_id": "org.videolan.VLC",
+   "installs_last_month": 300000,
+   "trending": 0.9,
+   "favorites_count": 700,
+   "verification_verified": true,
+   "updated_at": 1790000000,
+   "added_at": 1480000000
+  },
+  {
+   "name": "Steam",
+   "summary": "x",
+   "id": "com_valvesoftware_Steam",
+   "app_id": "com.valvesoftware.Steam",
+   "installs_last_month": 250000,
+   "trending": -2.5,
+   "favorites_count": 800,
+   "verification_verified": false,
+   "updated_at": 1793000000,
+   "added_at": 1490000000
+  },
+  {
+   "name": "no id at all",
+   "installs_last_month": 99
+  },
+  {
+   "name": "/etc/passwd",
+   "summary": "x",
+   "id": "__/__/etc/passwd",
+   "app_id": "../../etc/passwd",
+   "installs_last_month": 5,
+   "trending": 0,
+   "favorites_count": 0,
+   "verification_verified": false,
+   "updated_at": 1,
+   "added_at": 1
+  },
+  "not an object",
+  {
+   "name": "GIMP",
+   "summary": "x",
+   "id": "org_gimp_GIMP",
+   "app_id": "org.gimp.GIMP",
+   "installs_last_month": 120000,
+   "trending": true,
+   "favorites_count": null,
+   "verification_verified": "yes",
+   "updated_at": "2026-10-28T10:00:00Z",
+   "added_at": 1793300000000
+  }
+ ],
+ "page": 1,
+ "totalPages": 2,
+ "totalHits": 6
+}

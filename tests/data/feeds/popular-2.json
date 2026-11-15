@@ -1,0 +1,43 @@
+{
+ "hits": [
+  {
+   "name": "GIMP",
+   "summary": "x",
+   "id": "org_gimp_GIMP",
+   "app_id": "org.gimp.GIMP",
+   "installs_last_month": 120000,
+   "trending": 1.0,
+   "favorites_count": 400,
+   "verification_verified": true,
+   "updated_at": 1792000000,
+   "added_at": 1470000000
+  },
+  {
+   "name": "krita",
+   "summary": "x",
+   "id": "org_kde_krita",
+   "app_id": "org.kde.krita",
+   "installs_last_month": 110000,
+   "trending": 1.2,
+   "favorites_count": 300,
+   "verification_verified": false,
+   "updated_at": 1791000000,
+   "added_at": 1475000000
+  },
+  {
+   "name": "kdenlive",
+   "summary": "x",
+   "id": "org_kde_kdenlive",
+   "app_id": "org.kde.kdenlive",
+   "installs_last_month": 60000,
+   "trending": 0.5,
+   "favorites_count": 10,
+   "verification_verified": true,
+   "updated_at": 1,
+   "added_at": 1
+  }
+ ],
+ "page": 2,
+ "totalPages": 2,
+ "totalHits": 6
+}

@@ -1,0 +1,112 @@
+raye-store (0.5.5~beta1) resolute; urgency=medium
+
+  * Windows programs install out of sight: WinRAR, 7-Zip, Notepad++ and
+    FL Studio run their setup with its own quiet switches, after the Store
+    shows the license terms it accepts. Roblox Studio has none, so it
+    keeps its window and the Store says so.
+  * Installing shows how far it is, from what the setup has written.
+  * Open and Uninstall show as soon as the setup ends, not a minute later.
+  * Programs with only small icons get the Store's own picture in Start
+    and on the taskbar; the Store's pictures are 256 px where the maker
+    has them.
+  * Start and the taskbar showed FL Studio's 16-colour small icon, which
+    looked scrambled: the true-colour icon of each size is used now.
+  * Roblox Studio downloads its current installer.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Sat, 14 Nov 2026 20:28:01 +0000
+
+raye-store (0.5.4~beta1) resolute; urgency=medium
+
+  * Resizing the window while the Store loads no longer freezes or
+    crashes it.
+  * The Store opens on the list from last time and refreshes it in the
+    background, so apps show up almost at once.
+  * FL Studio, Roblox Studio and the other Windows programs download
+    again: their makers' servers refused the old download agent.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Sat, 14 Nov 2026 19:17:00 +0000
+
+raye-store (0.5~beta1) resolute; urgency=medium
+
+  * An install that was not allowed now says it needs root access.
+  * FL Studio and other music programs are filed under Audio, not
+    Graphics.
+  * Windows programs' shortcuts are read up to their end mark, as
+    Windows does, and a removed space takes its hidden runner entry with
+    it.
+  * American spelling: License, Canceling, Canceled.
+  * The Store offers popular Windows programs (WinRAR, 7-Zip, Notepad++,
+    FL Studio, Roblox Studio) from their makers' own installers, checked
+    against a pinned SHA-256 before anything runs.
+  * Each Windows program says how it runs here: Optimized for Raye, Works
+    on Raye, or Doesn't work on Raye for games whose anti-cheat refuses
+    this system, with the reason. Those games stay out of Start menu
+    search.
+  * Searching for Discord, Steam, OBS, Minecraft, Spotify, Chrome, VLC or
+    Epic Games finds the native app.
+  * New home rows: Optimized for Raye and Your Windows favorites.
+  * The big picture on top of Home and Apps shows apps most people know,
+    picked by Raye (Firefox, Discord, Steam, OBS, GIMP and more), another
+    one each day, instead of Flathub's picks.
+  * A Windows program's install says "Installing…" and, on its own line,
+    to finish in the setup window, instead of a line cut short.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Thu, 12 Nov 2026 20:42:05 +0000
+
+raye-store (0.3~beta1) resolute; urgency=medium
+
+  * Chocolate Doom and other apps listed by both Flathub and the archive
+    show once.
+  * A second "Try again" no longer starts a second catalog refresh.
+  * The greys of the new Raye Night and Day, and the glow follows your
+    accent.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Wed, 11 Nov 2026 13:00:19 +0000
+
+raye-store (0.2~beta1) resolute; urgency=medium
+
+  * New look, more sections, and suggestions under the search box.
+  * An install goes on when the window is closed, with its progress and a
+    Cancel button.
+  * Uninstalling closes the app first and says what really happened.
+  * The Store knows apps the system installed itself, and links to apps open
+    the Store.
+  * Chrome and other Chromium browsers can make apps of web sites.
+  * About shows the Store's real version.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Sun, 08 Nov 2026 11:07:43 +0000
+
+raye-store (0.1~dev4) resolute; urgency=medium
+
+  * Apps Raye offers itself, for what is not on Flathub: extras.json
+    lists each with its https address and SHA-256, and
+    raye-store-extra installs it only if the download matches.
+  * ArtCraft, the open-source creative suite, in Featured, marked Preview
+    since its apps are early versions.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Thu, 29 Oct 2026 02:45:00 -0400
+
+raye-store (0.1~dev3) resolute; urgency=medium
+
+  * The catalog reloads once fresh Flathub data has arrived, instead of
+    reloading before the download had even started.
+  * A timer keeps the catalog fresh, so the Store is full the first time
+    it opens.
+  * The interface now loads: QML module moved where Qt looks for it, and
+    a build test that opens it.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Thu, 29 Oct 2026 00:16:00 -0400
+
+raye-store (0.1~dev2) resolute; urgency=medium
+
+  * Featured row on the home page: Steam, Heroic, Discord and the usual apps.
+  * raye-store <app id> opens straight on that app.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Wed, 28 Oct 2026 21:24:55 -0400
+
+raye-store (0.1~dev1) resolute; urgency=medium
+
+  * First version: Flathub and system apps in one list, details page,
+    install and remove, Library with "Update all".
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Wed, 28 Oct 2026 22:30:00 -0400

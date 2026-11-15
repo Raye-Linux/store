@@ -1,0 +1,16 @@
+{"programs": [
+ {"profile": "winrar", "name": "WinRAR", "icon": "windows/winrar.png", "categories": ["Utility"],
+  "summary": {"en": "Opens archives", "fr": "Ouvre les archives"},
+  "installer": {"url": "https://example.org/winrar-x64-723.exe", "file": "winrar-x64-723.exe", "size": 100, "version": "7.23", "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b"}},
+ {"profile": "tool", "name": "Tool", "summary": "A tool",
+  "installer": {"url": "https://example.org/tool.exe", "file": "tool.exe", "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b"}},
+ {"profile": "studio", "name": "Some Studio", "summary": "Makes things",
+  "installer": {"url": "https://example.org/studio.exe", "file": "studioInstaller.exe", "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b"}},
+ {"profile": "plain", "name": "Plain", "summary": "Over http",
+  "installer": {"url": "http://example.org/plain.exe", "file": "plain.exe", "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b"}},
+ {"profile": "short", "name": "Short", "summary": "Bad hash",
+  "installer": {"url": "https://example.org/short.exe", "file": "short.exe", "sha256": "1234"}},
+ {"profile": "path", "name": "Path", "summary": "Bad file name",
+  "installer": {"url": "https://example.org/x.exe", "file": "../x.exe", "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b"}},
+ {"profile": "discord", "name": "Discord", "native": "com.discordapp.Discord"}
+]}

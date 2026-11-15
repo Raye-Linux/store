@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=org.raye.store.runner
+Exec=/usr/libexec/raye-store-runner

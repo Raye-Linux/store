@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=Store
+Name[fr]=Store
+GenericName=App store
+GenericName[fr]=Boutique d'applications
+Comment=Find, install and update apps
+Comment[fr]=Trouver, installer et mettre à jour des applications
+Exec=raye-store %u
+Icon=system-software-install
+Categories=Qt;KDE;System;PackageManager;
+Keywords=apps;install;store;software;flatpak;
+Keywords[fr]=applications;installer;boutique;logiciels;flatpak;
+MimeType=x-scheme-handler/appstream;
+StartupNotify=true
