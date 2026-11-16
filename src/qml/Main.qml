@@ -29,12 +29,15 @@ Kirigami.ApplicationWindow {
     // the rail place a page belongs to
     property string section: "home"
 
+    // the pages Back left, for Forward (like a browser)
+    property var ahead: []
     function go(next) {
         if (next.page === "search" && route.page === "search") {
             route = next
             return
         }
         history = history.concat([route])
+        ahead = []
         route = next
     }
     function back() {
@@ -42,7 +45,16 @@ Kirigami.ApplicationWindow {
             return
         const previous = history[history.length - 1]
         history = history.slice(0, -1)
+        ahead = ahead.concat([route])
         route = previous
+    }
+    function forward() {
+        if (ahead.length === 0)
+            return
+        const next = ahead[ahead.length - 1]
+        ahead = ahead.slice(0, -1)
+        history = history.concat([route])
+        route = next
     }
     function goSection(page) {
         if (route.page === page) {
@@ -137,7 +149,27 @@ Kirigami.ApplicationWindow {
     }
 
     Shortcut { sequences: ["Ctrl+F", "Ctrl+E"]; onActivated: searchBox.forceActiveFocus() }
-    Shortcut { sequences: [StandardKey.Back]; onActivated: window.back() }
+    Shortcut { sequences: [StandardKey.Back, "Alt+Left"]; onActivated: window.back() }
+    Shortcut { sequences: [StandardKey.Forward, "Alt+Right"]; onActivated: window.forward() }
+    Shortcut {
+        sequence: "Backspace"
+        // only when no field is taking the key
+        enabled: !(window.activeFocusItem && window.activeFocusItem.cursorPosition !== undefined)
+        onActivated: window.back()
+    }
+    // the mouse's back and forward buttons, anywhere in the window
+    MouseArea {
+        anchors.fill: parent
+        acceptedButtons: Qt.BackButton | Qt.ForwardButton
+        z: 100
+        propagateComposedEvents: true
+        onPressed: mouse => {
+            if (mouse.button === Qt.BackButton)
+                window.back()
+            else
+                window.forward()
+        }
+    }
     Shortcut { sequence: "Backspace"; enabled: !searchBox.activeFocus; onActivated: window.back() }
 
     // typing offers apps under the box; Enter or "See all" searches
@@ -316,11 +348,6 @@ Kirigami.ApplicationWindow {
                 border.width: 1
                 border.color: Theme.strokeSurface
                 clip: true
-
-                TapHandler {
-                    acceptedButtons: Qt.BackButton
-                    onTapped: window.back()
-                }
 
                 Item {
                     id: pages

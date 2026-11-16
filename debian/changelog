@@ -1,3 +1,10 @@
+raye-store (0.5.6~beta1) resolute; urgency=medium
+
+  * Back and Forward work anywhere in the window: the mouse's side
+    buttons, Alt+Left / Alt+Right and Backspace.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Mon, 16 Nov 2026 13:18:10 +0000
+
 raye-store (0.5.5~beta1) resolute; urgency=medium
 
   * Windows programs install out of sight: WinRAR, 7-Zip, Notepad++ and
