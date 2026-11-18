@@ -124,6 +124,9 @@ install(PROGRAMS data/plasma-discover DESTINATION ${KDE_INSTALL_BINDIR})
 
 file(GLOB store_desktop CONFIGURE_DEPENDS data/*.desktop data/placeholders/*.desktop)
 install(FILES ${store_desktop} DESTINATION ${KDE_INSTALL_APPDIR})
+# what opens a .deb: read after the desktop's own list, which still names
+# Discover (not there: the Store replaces it)
+install(FILES data/mimeapps.list DESTINATION ${KDE_INSTALL_APPDIR})
 
 file(GLOB store_data CONFIGURE_DEPENDS
     data/*.json data/*.tsv data/*.txt data/*.flatpakrepo)

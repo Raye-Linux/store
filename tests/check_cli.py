@@ -24,7 +24,8 @@ def check(ok, text):
 
 
 help_text = run("--help").stdout
-for option in ("--open", "--uninstall"):
+# the .deb window too: its launcher passes --install-file
+for option in ("--open", "--uninstall", "--install-file"):
     check(option in help_text, f"--help lists {option}")
 
 for target in ("org.raye.not.installed.anywhere", "../../etc/passwd", "app/../x/y"):

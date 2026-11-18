@@ -15,4 +15,18 @@
     </defaults>
     <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/raye-store-extra</annotate>
   </action>
+  <!-- a .deb file someone opened: never without the password -->
+  <action id="org.raye.store.install-file">
+    <description>Install an app from a file</description>
+    <description xml:lang="fr">Installer une application à partir d'un fichier</description>
+    <message>Installing an app from a file needs your password</message>
+    <message xml:lang="fr">Installer une application à partir d'un fichier demande votre mot de passe</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/raye-store-extra</annotate>
+    <annotate key="org.freedesktop.policykit.exec.argv1">install-file</annotate>
+  </action>
 </policyconfig>

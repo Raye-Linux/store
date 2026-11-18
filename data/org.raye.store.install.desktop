@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+Name=App Installer
+Name[fr]=Installation d'applications
+GenericName=Install apps from .deb files
+GenericName[fr]=Installer des applications à partir de fichiers .deb
+Comment=Install an app from a .deb file
+Comment[fr]=Installer une application à partir d'un fichier .deb
+Exec=raye-store --install-file %f
+Icon=system-software-install
+MimeType=application/vnd.debian.binary-package;
+NoDisplay=true
+InitialPreference=12
+Categories=Qt;KDE;System;PackageManager;
+StartupNotify=true

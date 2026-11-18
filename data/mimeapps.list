@@ -1,0 +1,4 @@
+# Double-click on a .deb file installs it, like a setup file on Windows.
+# A user's choice in ~/.config/mimeapps.list still wins.
+[Default Applications]
+application/vnd.debian.binary-package=org.raye.store.install.desktop

@@ -1,29 +1,52 @@
 #!/usr/bin/python3 -I
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Installs or removes an app Raye offers itself, from extras.json.
+"""Installs or removes an app Raye offers itself, from extras.json, and
+installs a .deb file someone opened.
 
     raye-store-extra install <package>
     raye-store-extra remove <package>
+    raye-store-extra install-file </path/to/file.deb> <sha256>
+    raye-store-extra info </path/to/file.deb> <folder for its icon>
 
-Run as root through pkexec by Raye Store. Only packages listed in the
-root-owned catalog can be touched; the download must come over https
-and match the SHA-256 written in the catalog, or nothing is installed.
+install and remove run as root through pkexec, without a password for the
+sudo group. Only packages listed in the root-owned catalog can be touched;
+the download must come over https and match the SHA-256 written in the
+catalog, or nothing is installed.
+
+install-file runs as root through pkexec too, and always asks for the
+password (its own polkit action, org.raye.store.install-file). The file is
+opened as the person who asked, so it is one they can read; it is copied
+into a folder of root's before anything looks at it, so it cannot change
+under apt, and the copy must have the SHA-256 the window read. Raye's own
+packages and essential ones are never replaced this way. apt installs the copy and fetches what it depends on, and never
+removes a package to make room for it.
+
+info runs as the person, never through pkexec: it reads the file and
+prints what the install window shows, as JSON.
 
 For the Store's progress bar it prints, one a line:
-    phase downloading|installing|removing
+    phase preparing|downloading|installing|removing
     progress <0-100>          (when the size is known)
     bytes <done> <total>      (total 0 when not known)
+and for a file: package <name>, version <version>, launcher <desktop file>
+once it is installed, or reason <code> [<what>] when it is not.
 While it downloads, a line "cancel" on stdin stops it (exit code 3).
 """
 
+import collections
 import hashlib
 import json
 import os
 import re
 import select
+import shutil
+import stat
 import subprocess
 import sys
+import tarfile
 import tempfile
+import threading
+import time
 import urllib.error
 import urllib.request
 
@@ -85,7 +108,11 @@ def stdin_fd():
 
 
 def say(line):
-    print(line, flush=True)
+    # the window may be gone: the install goes on without it
+    try:
+        print(line, flush=True)
+    except OSError:
+        pass
 
 
 class HttpsOnly(urllib.request.HTTPRedirectHandler):
@@ -146,7 +173,550 @@ def download(url, expected, dest_dir=CACHE, opener=None, report=None, watch=None
         raise
 
 
+# --- .deb files people open ---------------------------------------------
+
+LOCAL_MAX = 4 * 1024 * 1024 * 1024
+CONTROL_MAX = 1024 * 1024
+DESKTOP_MAX = 256 * 1024
+ICON_MAX = 2 * 1024 * 1024
+ICONS_MAX = 24 * 1024 * 1024
+VERSION = re.compile(r"^[A-Za-z0-9][A-Za-z0-9.+~:-]{0,127}$")
+ARCH = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
+DESKTOP_PATH = re.compile(r"^usr/share/applications/[^/]+\.desktop$")
+THEME_ICON = re.compile(r"^usr/share/(?:icons/[^/]+/([^/]+)/apps|pixmaps)/[^/]+\.(?:png|svgz?|xpm)$")
+PICTURE = re.compile(r"\.(png|svgz?|xpm)$")
+
+
+class FileProblem(Exception):
+    """Why a file cannot be read or installed, as a code the window
+    turns into plain words: badpath, notfound, noaccess, notfile, notdeb,
+    broken, toolarge."""
+
+    def __init__(self, code):
+        super().__init__(code)
+        self.code = code
+
+
+def checked_path(path):
+    """The path as given, if it is a plain absolute path to a .deb: no
+    "..", no "//", no control characters."""
+    if not isinstance(path, str) or not 0 < len(path) <= 4096:
+        raise FileProblem("badpath")
+    if any(ord(c) < 32 or c == "\x7f" for c in path):
+        raise FileProblem("badpath")
+    if not path.startswith("/") or path.startswith("//") or os.path.normpath(path) != path:
+        raise FileProblem("badpath")
+    name = os.path.basename(path)
+    if not name.lower().endswith(".deb") or len(name) <= 4:
+        raise FileProblem("badpath")
+    return path
+
+
+def open_regular(path):
+    """Opens a regular file for reading, never through a symbolic link and
+    never waiting on a pipe; returns (fd, size)."""
+    flags = os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK | os.O_CLOEXEC | os.O_NOCTTY
+    try:
+        fd = os.open(path, flags)
+    except FileNotFoundError:
+        raise FileProblem("notfound")
+    except NotADirectoryError:
+        raise FileProblem("notfound")
+    except PermissionError:
+        raise FileProblem("noaccess")
+    except OSError:
+        # ELOOP: the last part is a symbolic link
+        raise FileProblem("notfile")
+    st = os.fstat(fd)
+    if not stat.S_ISREG(st.st_mode):
+        os.close(fd)
+        raise FileProblem("notfile")
+    os.set_blocking(fd, True)
+    return fd, st.st_size
+
+
+def open_as_caller(path, env=os.environ):
+    """As root, opens the file with the rights of the person pkexec ran us
+    for: a file they cannot read stays closed."""
+    if os.geteuid() != 0:
+        return open_regular(path)
+    try:
+        uid = int(env["PKEXEC_UID"])
+        import pwd
+        user = pwd.getpwuid(uid)
+    except (KeyError, ValueError):
+        raise FileProblem("noaccess")
+    groups = os.getgroups()
+    try:
+        os.setgroups(os.getgrouplist(user.pw_name, user.pw_gid))
+        os.setegid(user.pw_gid)
+        os.seteuid(uid)
+        return open_regular(path)
+    except FileProblem:
+        raise
+    except OSError:
+        raise FileProblem("noaccess")
+    finally:
+        os.seteuid(0)
+        os.setegid(0)
+        os.setgroups(groups)
+
+
+class _Member:
+    """One member of an ar archive, read no further than its end."""
+
+    def __init__(self, f, size):
+        self.f = f
+        self.left = size
+
+    def read(self, n=-1):
+        if self.left <= 0:
+            return b""
+        n = self.left if n is None or n < 0 else min(n, self.left)
+        data = self.f.read(n)
+        if not data:
+            raise FileProblem("broken")
+        self.left -= len(data)
+        return data
+
+    def skip(self):
+        while self.left > 0:
+            self.read(1 << 16)
+
+
+def _ar_members(f):
+    if f.read(8) != b"!<arch>\n":
+        raise FileProblem("notdeb")
+    while True:
+        head = f.read(60)
+        if not head:
+            return
+        if len(head) != 60 or head[58:60] != b"`\n":
+            raise FileProblem("broken")
+        name = head[:16].decode("latin-1").strip().rstrip("/")
+        try:
+            size = int(head[48:58].decode("ascii").strip())
+        except ValueError:
+            raise FileProblem("broken")
+        member = _Member(f, size)
+        yield name, member
+        member.skip()
+        if size % 2:
+            f.read(1)
+
+
+def _tar_name(name):
+    while name.startswith("./"):
+        name = name[2:]
+    return name.lstrip("/")
+
+
+def _control_fields(text):
+    fields, key = {}, None
+    for line in text.splitlines():
+        if line[:1] in (" ", "\t"):
+            if key:
+                fields[key] += "\n" + line.strip()
+        elif ":" in line:
+            key, _, value = line.partition(":")
+            key = key.strip()
+            fields[key] = value.strip()
+    return fields
+
+
+def parse_desktop(text):
+    """The keys of the [Desktop Entry] group of a .desktop file."""
+    entry, inside = {}, False
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith("["):
+            inside = line == "[Desktop Entry]"
+        elif inside and "=" in line and not line.startswith("#"):
+            key, _, value = line.partition("=")
+            entry.setdefault(key.strip(), value.strip())
+    return entry
+
+
+def visible_app(entry):
+    return (entry.get("Type") == "Application" and entry.get("NoDisplay", "").lower() != "true"
+            and entry.get("Hidden", "").lower() != "true")
+
+
+def _icon_rank(path):
+    if path.endswith((".svg", ".svgz")):
+        rank = 100000
+    elif path.endswith(".png"):
+        size = re.search(r"/(\d+)x\d+(?:@(\d+))?/", "/" + path)
+        rank = int(size.group(1)) * int(size.group(2) or 1) if size else 48
+    else:
+        rank = 1
+    return rank + (1 if "/hicolor/" in path else 0)
+
+
+def _pick_icon(icon, icons):
+    if not icon:
+        return None
+    if icon.startswith("/"):
+        return _tar_name(icon) if _tar_name(icon) in icons else None
+    stem = PICTURE.sub("", icon)
+    named = [p for p in icons if PICTURE.sub("", os.path.basename(p)) == stem]
+    # the icon theme first; a picture of that name anywhere else otherwise
+    found = [p for p in named if THEME_ICON.match(p)] or named
+    return max(found, key=_icon_rank) if found else None
+
+
+def read_deb(f, data=True, icon_dir=None):
+    """What a .deb says about itself: its control fields and, with data,
+    the name and icon of the app it installs. The icon is written to
+    icon_dir under a name of ours, never under the one in the package."""
+    members = _ar_members(f)
+    try:
+        name, member = next(members)
+    except StopIteration:
+        raise FileProblem("notdeb")
+    if name != "debian-binary" or not member.read(16).startswith(b"2."):
+        raise FileProblem("notdeb")
+    try:
+        name, member = next(members)
+    except StopIteration:
+        raise FileProblem("broken")
+    if not name.startswith("control.tar"):
+        raise FileProblem("broken")
+    control = None
+    try:
+        with tarfile.open(fileobj=member, mode="r|*") as tar:
+            for m in tar:
+                if _tar_name(m.name) == "control" and m.isreg() and m.size <= CONTROL_MAX:
+                    control = tar.extractfile(m).read().decode("utf-8", "replace")
+                    break
+    except FileProblem:
+        raise
+    except Exception:
+        raise FileProblem("broken")
+    if control is None:
+        raise FileProblem("broken")
+    fields = _control_fields(control)
+    deb = {
+        "package": fields.get("Package", ""),
+        "version": fields.get("Version", ""),
+        "architecture": fields.get("Architecture", ""),
+        "summary": fields.get("Description", "").split("\n")[0].strip()[:300],
+        "maintainer": fields.get("Maintainer", "")[:300],
+        "homepage": fields.get("Homepage", "") if fields.get("Homepage", "").startswith("https://") else "",
+        "installedSize": 0,
+        "essential": fields.get("Essential", "").lower() == "yes",
+        "names": {},
+        "desktop": "",
+        "icon": "",
+    }
+    if not (PACKAGE.fullmatch(deb["package"]) and VERSION.fullmatch(deb["version"])
+            and ARCH.fullmatch(deb["architecture"])):
+        raise FileProblem("broken")
+    try:
+        deb["installedSize"] = max(0, int(fields.get("Installed-Size", "0"))) * 1024
+    except ValueError:
+        pass
+    if not data:
+        return deb
+
+    for name, member in members:
+        if name.startswith("data.tar"):
+            break
+    else:
+        raise FileProblem("broken")
+    desktops, icons, kept = {}, {}, 0
+    try:
+        with tarfile.open(fileobj=member, mode="r|*") as tar:
+            for m in tar:
+                if not m.isreg():
+                    continue
+                path = _tar_name(m.name)
+                if DESKTOP_PATH.match(path) and m.size <= DESKTOP_MAX and len(desktops) < 64:
+                    desktops[path] = tar.extractfile(m).read().decode("utf-8", "replace")
+                elif PICTURE.search(path) and m.size <= ICON_MAX and kept + m.size <= ICONS_MAX:
+                    icons[path] = tar.extractfile(m).read()
+                    kept += m.size
+    except FileProblem:
+        raise
+    except Exception:
+        raise FileProblem("broken")
+
+    entries = sorted((p, parse_desktop(t)) for p, t in desktops.items())
+    entries = [(p, e) for p, e in entries if visible_app(e)]
+    icon_name = deb["package"]
+    if entries:
+        path, entry = entries[0]
+        deb["desktop"] = os.path.basename(path)
+        for key, value in entry.items():
+            lang = re.fullmatch(r"Name(?:\[([A-Za-z@_]+)\])?", key)
+            if lang and value:
+                deb["names"][lang.group(1) or ""] = value[:200]
+        icon_name = entry.get("Icon", "") or icon_name
+    chosen = _pick_icon(icon_name, icons)
+    if chosen and icon_dir:
+        target = os.path.join(icon_dir, "icon." + PICTURE.search(chosen).group(1))
+        fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_TRUNC | os.O_NOFOLLOW | os.O_CLOEXEC, 0o644)
+        with os.fdopen(fd, "wb") as out:
+            out.write(icons[chosen])
+        deb["icon"] = target
+    return deb
+
+
+def arch_ok(arch, architectures):
+    return arch == "all" or arch in architectures
+
+
+def machine_architectures():
+    archs = []
+    for option in ("--print-architecture", "--print-foreign-architectures"):
+        r = subprocess.run(["dpkg", option], capture_output=True, text=True)
+        archs += r.stdout.split()
+    return archs
+
+
+def installed_version(package):
+    r = subprocess.run(["dpkg-query", "-W", "-f=${db:Status-Status}\t${Version}", package],
+                       capture_output=True, text=True)
+    status, _, version = r.stdout.partition("\t")
+    return version.strip() if r.returncode == 0 and status == "installed" else ""
+
+
+def compare_versions(a, b):
+    for answer, op in ((1, "gt"), (0, "eq")):
+        if subprocess.run(["dpkg", "--compare-versions", a, op, b]).returncode == 0:
+            return answer
+    return -1
+
+
+def info(path, icon_dir, out=sys.stdout, architectures=machine_architectures,
+         installed=installed_version, compare=compare_versions, launchers=None):
+    """Prints what the install window shows about a file, as JSON."""
+    try:
+        path = checked_path(path)
+        if not os.path.isabs(icon_dir) or not os.path.isdir(icon_dir):
+            raise FileProblem("badpath")
+        fd, size = open_regular(path)
+        with os.fdopen(fd, "rb") as f:
+            digest = hashlib.sha256()
+            while chunk := f.read(1 << 20):
+                digest.update(chunk)
+            f.seek(0)
+            deb = read_deb(f, data=True, icon_dir=icon_dir)
+    except FileProblem as e:
+        out.write(json.dumps({"ok": False, "error": e.code}) + "\n")
+        return 1
+    current = installed(deb["package"])
+    launchers = launchers or launchers_of
+    deb.update(ok=True, fileSize=size, sha256=digest.hexdigest(), archOk=arch_ok(deb["architecture"], architectures()),
+               installed=current, newer=compare(deb["version"], current) if current else None,
+               launchers=launchers(deb["package"]) if current else [])
+    out.write(json.dumps(deb) + "\n")
+    return 0
+
+
+def classify(text):
+    """apt's own words, as (reason, what): the package it is about when
+    there is one."""
+    if re.search(r"Could not get lock|Unable to acquire the dpkg frontend lock|Unable to lock", text):
+        return "busy", ""
+    if "were downgraded" in text:
+        return "older", ""
+    if re.search(r"enough free space|No space left on device", text):
+        return "space", ""
+    need = re.search(r"(?:^|\s)(?:Pre-?)?Depends:\s*([a-z0-9][a-z0-9+.-]*)", text, re.M)
+    if need:
+        return "dependencies", need.group(1)
+    clash = re.search(r"(?:^|\s)(?:Conflicts|Breaks):\s*([a-z0-9][a-z0-9+.-]*)", text, re.M)
+    if clash:
+        return "conflict", clash.group(1)
+    if "remove is disabled" in text:
+        return "conflict", ""
+    if re.search(r"Failed to fetch|Temporary failure resolving|Could not resolve|Unable to fetch", text):
+        return "network", ""
+    if re.search(r"returned an error code|error processing package", text):
+        return "setup", ""
+    return "unknown", ""
+
+
+def status_line(line):
+    """("downloading" or "installing", percent) from a line apt writes on
+    its status fd, or None."""
+    kind, _, rest = line.partition(":")
+    phase = {"dlstatus": "downloading", "pmstatus": "installing"}.get(kind)
+    parts = rest.split(":", 2)
+    if not phase or len(parts) < 2:
+        return None
+    try:
+        percent = int(float(parts[1]))
+    except ValueError:
+        return None
+    return phase, max(0, min(100, percent))
+
+
+def run_apt(cmd, status_fd):
+    env = dict(os.environ, DEBIAN_FRONTEND="noninteractive")
+    p = subprocess.Popen(cmd, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT, pass_fds=(status_fd,))
+    tail = collections.deque(maxlen=400)
+    for raw in p.stdout:
+        text = raw.decode("utf-8", "replace")
+        tail.append(text)
+        try:
+            sys.stderr.write(text)
+            sys.stderr.flush()
+        except OSError:
+            pass
+    return p.wait(), "".join(tail)
+
+
+def launchers_of(package):
+    """The Start menu entries the installed package put in place."""
+    r = subprocess.run(["dpkg-query", "-L", package], capture_output=True, text=True)
+    found = []
+    for path in r.stdout.splitlines():
+        if not re.fullmatch(r"/usr/share/applications/[^/]+\.desktop", path) or not os.path.isfile(path):
+            continue
+        try:
+            with open(path, encoding="utf-8", errors="replace") as f:
+                entry = parse_desktop(f.read(DESKTOP_MAX))
+        except OSError:
+            continue
+        if visible_app(entry):
+            found.append(path)
+    return found
+
+
+def apt_clean():
+    env = dict(os.environ, DEBIAN_FRONTEND="noninteractive")
+    subprocess.run(["apt-get", "clean"], env=env, stdin=subprocess.DEVNULL)
+
+
+def _follow_status(fd, report):
+    phase, shown = None, None
+    with os.fdopen(fd, "rb") as r:
+        for raw in r:
+            found = status_line(raw.decode("utf-8", "replace").strip())
+            if not found:
+                continue
+            if found[0] != phase:
+                phase, shown = found[0], None
+                report(f"phase {phase}")
+            if found[1] != shown:
+                shown = found[1]
+                report(f"progress {shown}")
+
+
+def protected_package(package):
+    """True for what Raye itself is made of: its own packages and the
+    ones the system cannot do without. A loose file never replaces them."""
+    if package.startswith("raye-"):
+        return True
+    r = subprocess.run(["dpkg-query", "-W", "-f=${db:Status-Status}\t${Essential}\t${Priority}", package],
+                       capture_output=True, text=True)
+    status, essential, priority = (r.stdout.split("\t") + ["", "", ""])[:3]
+    return r.returncode == 0 and status == "installed" and (
+        essential == "yes" or priority in ("required", "important"))
+
+
+def drop_stale_copies(cache, age=24 * 3600):
+    """Copies a killed install left behind."""
+    try:
+        names = os.listdir(cache)
+    except OSError:
+        return
+    for name in names:
+        path = os.path.join(cache, name)
+        try:
+            if name.startswith("file-") and os.lstat(path).st_mtime < time.time() - age:
+                shutil.rmtree(path, ignore_errors=True)
+        except OSError:
+            pass
+
+
+def install_file(path, expected, say=say, apt=run_apt, cache=CACHE, architectures=machine_architectures,
+                 opener=open_as_caller, launchers=launchers_of, clean=apt_clean, protected=protected_package):
+    """Installs the file the window showed: expected is the SHA-256 the
+    window read, so a file swapped while the password was typed is refused."""
+    try:
+        path = checked_path(path)
+        if not SHA256.fullmatch(expected):
+            raise FileProblem("changed")
+        fd, size = opener(path)
+    except FileProblem as e:
+        say(f"reason {e.code}")
+        return 1
+    os.makedirs(cache, mode=0o755, exist_ok=True)
+    drop_stale_copies(cache)
+    folder = tempfile.mkdtemp(dir=cache, prefix="file-")
+    try:
+        os.chmod(folder, 0o755)
+        copy = os.path.join(folder, "package.deb")
+        try:
+            say("phase preparing")
+            with os.fdopen(fd, "rb") as src, open(copy, "xb") as dst:
+                if size > LOCAL_MAX:
+                    raise FileProblem("toolarge")
+                done = 0
+                digest = hashlib.sha256()
+                while chunk := src.read(1 << 20):
+                    done += len(chunk)
+                    if done > LOCAL_MAX:
+                        raise FileProblem("toolarge")
+                    digest.update(chunk)
+                    dst.write(chunk)
+            if digest.hexdigest() != expected:
+                raise FileProblem("changed")
+            os.chmod(copy, 0o644)
+            with open(copy, "rb") as f:
+                deb = read_deb(f, data=False)
+        except FileProblem as e:
+            say(f"reason {e.code}")
+            return 1
+        if not arch_ok(deb["architecture"], architectures()):
+            say(f"reason architecture {deb['architecture']}")
+            return 1
+        if deb["essential"] or protected(deb["package"]):
+            say(f"reason system {deb['package']}")
+            return 1
+        say(f"package {deb['package']}")
+        say(f"version {deb['version']}")
+
+        read_end, write_end = os.pipe()
+        follower = threading.Thread(target=_follow_status, args=(read_end, say), daemon=True)
+        follower.start()
+        try:
+            cmd = ["apt-get", "install", "-y", "-q", "--no-remove",
+                   "-o", f"APT::Status-Fd={write_end}", "-o", "DPkg::Lock::Timeout=300",
+                   "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", copy]
+            code, output = apt(cmd, write_end)
+        finally:
+            os.close(write_end)
+            follower.join(10)
+        if code != 0:
+            reason, what = classify(output)
+            say(f"reason {reason} {what}".rstrip())
+            return 1
+        for launcher in launchers(deb["package"]):
+            say(f"launcher {launcher}")
+        return 0
+    finally:
+        shutil.rmtree(folder, ignore_errors=True)
+        clean()
+
+
 def main(argv):
+    if len(argv) >= 2 and argv[1] == "install-file":
+        # only as root, through pkexec, for someone
+        if len(argv) != 4 or os.geteuid() != 0 or "PKEXEC_UID" not in os.environ:
+            print("usage: pkexec raye-store-extra install-file <file.deb> <sha256>", file=sys.stderr)
+            return 2
+        return install_file(argv[2], argv[3])
+    if len(argv) >= 2 and argv[1] == "info":
+        # never as root for someone else
+        if len(argv) != 4 or (os.geteuid() == 0 and "PKEXEC_UID" in os.environ):
+            print("usage: raye-store-extra info <file.deb> <folder>", file=sys.stderr)
+            return 2
+        return info(argv[2], argv[3])
     if len(argv) != 3 or argv[1] not in ("install", "remove") or not PACKAGE.match(argv[2]):
         print("usage: raye-store-extra install|remove <package>", file=sys.stderr)
         return 2

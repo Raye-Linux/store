@@ -4,6 +4,7 @@
 #include "applink.h"
 #include "background.h"
 #include "catalog.h"
+#include "debfile.h"
 #include "installer.h"
 #include "searchsuggestions.h"
 #include "storesettings.h"
@@ -109,11 +110,15 @@ int main(int argc, char *argv[])
     // used by the build tests: load the interface, report, quit
     if (app.arguments().contains(QStringLiteral("--check-qml"))) {
         QQmlEngine engine;
-        QQmlComponent component(&engine);
-        component.loadFromModule("org.raye.store", "Main");
-        for (const auto &error : component.errors())
-            qCritical("%s", qPrintable(error.toString()));
-        return component.isError() ? 1 : 0;
+        bool broken = false;
+        for (const char *root : {"Main", "DebInstall"}) {
+            QQmlComponent component(&engine);
+            component.loadFromModule("org.raye.store", root);
+            for (const auto &error : component.errors())
+                qCritical("%s", qPrintable(error.toString()));
+            broken = broken || component.isError();
+        }
+        return broken ? 1 : 0;
     }
     KLocalizedString::setApplicationDomain("raye-store");
     QApplication::setWindowIcon(QIcon::fromTheme(QStringLiteral("system-software-install")));
@@ -131,8 +136,11 @@ int main(int argc, char *argv[])
     const QCommandLineOption openOption(QStringLiteral("open"), i18n("Open the page of this app"), QStringLiteral("app"));
     const QCommandLineOption uninstallOption(
         QStringLiteral("uninstall"), i18n("Remove this app, with no window, and print how it goes as JSON lines"), QStringLiteral("app"));
+    const QCommandLineOption installFileOption(
+        QStringLiteral("install-file"), i18n("Open the small window that installs this .deb file"), QStringLiteral("file"));
     parser.addOption(openOption);
     parser.addOption(uninstallOption);
+    parser.addOption(installFileOption);
     parser.process(app);
     about.processCommandLine(&parser);
 
@@ -145,6 +153,21 @@ int main(int argc, char *argv[])
         UninstallCommand command(&installer, &out);
         QObject::connect(&command, &UninstallCommand::done, &app, &QCoreApplication::exit, Qt::QueuedConnection);
         command.start(resolveUninstallTarget(parser.value(uninstallOption)));
+        return app.exec();
+    }
+
+    // a .deb someone opened: its own small window, one per file, beside
+    // the Store and never handed to it
+    if (parser.isSet(installFileOption)) {
+        QGuiApplication::setDesktopFileName(QStringLiteral("org.raye.store.install"));
+        DebFile deb(parser.value(installFileOption));
+        QQmlApplicationEngine engine;
+        engine.rootContext()->setContextObject(new KLocalizedContext(&engine));
+        engine.rootContext()->setContextProperty(QStringLiteral("deb"), &deb);
+        engine.loadFromModule("org.raye.store", "DebInstall");
+        if (engine.rootObjects().isEmpty())
+            return 1;
+        deb.load();
         return app.exec();
     }
 

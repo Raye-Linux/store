@@ -1359,3 +1359,166 @@ msgstr "Vos favoris Windows"
 #: src/qml/ui/Format.qml
 msgid "This one can't run on Raye for now, for the reason given with it."
 msgstr "Celui-ci ne peut pas fonctionner sur Raye pour l'instant, pour la raison indiquée."
+
+# .deb files opened from the file manager
+
+#: src/qml/DebInstall.qml
+msgid "%1 is already installed"
+msgstr "%1 est déjà installé"
+
+#: src/qml/DebInstall.qml
+msgid "A newer version of %1 is installed"
+msgstr "Une version plus récente de %1 est installée"
+
+#: src/debfile.cpp
+msgid "A newer version of this app is already installed."
+msgstr "Une version plus récente de cette application est déjà installée."
+
+#: src/qml/DebInstall.qml
+msgid "App Installer"
+msgstr "Installation d'applications"
+
+#: src/qml/DebInstall.qml
+msgid "Close"
+msgstr "Fermer"
+
+#: src/debfile.cpp
+msgid "Downloading what it needs…"
+msgstr "Téléchargement des éléments nécessaires…"
+
+#: src/debfile.cpp
+msgid "Getting ready…"
+msgstr "Préparation…"
+
+#: src/qml/DebInstall.qml
+msgid "Hide details"
+msgstr "Masquer les détails"
+
+#: src/qml/DebInstall.qml
+msgid "Install %1?"
+msgstr "Installer %1 ?"
+
+#: src/qml/DebInstall.qml
+msgid "Installing %1"
+msgstr "Installation de %1"
+
+#: src/qml/DebInstall.qml
+msgid "On this PC: %1"
+msgstr "Sur ce PC : %1"
+
+#: src/main.cpp
+msgid "Open the small window that installs this .deb file"
+msgstr "Ouvrir la petite fenêtre qui installe ce fichier .deb"
+
+#: src/qml/DebInstall.qml
+msgid "Publisher: %1"
+msgstr "Éditeur : %1"
+
+#: src/qml/DebInstall.qml
+msgid "Reading the app…"
+msgstr "Lecture de l'application…"
+
+#: src/qml/DebInstall.qml
+msgid "Show details"
+msgstr "Afficher les détails"
+
+#: src/debfile.cpp
+msgid "Something went wrong while installing this app."
+msgstr "Un problème est survenu pendant l'installation de cette application."
+
+#: src/debfile.cpp
+msgid "The app's own setup didn't finish. Try again, or ask whoever made it."
+msgstr "L'installation propre à l'application n'a pas abouti. Réessayez, ou contactez son éditeur."
+
+#: src/debfile.cpp
+msgid "There isn't enough free space on this PC."
+msgstr "Il n'y a pas assez d'espace libre sur ce PC."
+
+#: src/debfile.cpp
+msgid "This app can't be installed"
+msgstr "Cette application ne peut pas être installée"
+
+#: src/debfile.cpp
+msgid "This app can't be installed alongside %1, which is already on this PC."
+msgstr "Cette application ne peut pas être installée à côté de %1, déjà présent sur ce PC."
+
+#: src/debfile.cpp
+msgid "This app can't be installed alongside an app that's already on this PC."
+msgstr "Cette application ne peut pas être installée à côté d'une application déjà présente sur ce PC."
+
+#: src/qml/DebInstall.qml
+msgid "This app doesn't come from the Store, so Raye can't check it. Install it only if you trust where you got it."
+msgstr "Cette application ne vient pas du Store : Raye ne peut pas la vérifier. Installez-la seulement si vous faites confiance à sa provenance."
+
+#: src/debfile.cpp
+msgid "This app is made for a different kind of processor (%1) and can't run on this PC."
+msgstr "Cette application est faite pour un autre type de processeur (%1) et ne peut pas fonctionner sur ce PC."
+
+#: src/debfile.cpp
+msgid "This app is made for a different kind of processor and can't run on this PC."
+msgstr "Cette application est faite pour un autre type de processeur et ne peut pas fonctionner sur ce PC."
+
+#: src/debfile.cpp
+msgid "This app needs %1, which Raye can't find. It may be made for a different system."
+msgstr "Cette application a besoin de %1, que Raye ne trouve pas. Elle est peut-être faite pour un autre système."
+
+#: src/debfile.cpp
+msgid "This app needs other parts that Raye can't find. It may be made for a different system."
+msgstr "Cette application a besoin d'autres éléments que Raye ne trouve pas. Elle est peut-être faite pour un autre système."
+
+#: src/debfile.cpp
+msgid "This file is damaged and can't be installed. Try downloading it again."
+msgstr "Ce fichier est endommagé et ne peut pas être installé. Essayez de le télécharger à nouveau."
+
+#: src/debfile.cpp
+msgid "This file is too large to be an app package."
+msgstr "Ce fichier est trop volumineux pour être un paquet d'application."
+
+#: src/debfile.cpp
+msgid "This file isn't an app package."
+msgstr "Ce fichier n'est pas un paquet d'application."
+
+#: src/qml/DebInstall.qml
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: src/qml/DebInstall.qml
+msgid "Update %1?"
+msgstr "Mettre à jour %1 ?"
+
+#: src/qml/DebInstall.qml
+msgid "Version %1"
+msgstr "Version %1"
+
+#: src/debfile.cpp
+msgid "Waiting for your password…"
+msgstr "En attente de votre mot de passe…"
+
+#: src/debfile.cpp
+msgid "We can't find this file. It may have been moved or deleted."
+msgstr "Impossible de trouver ce fichier. Il a peut-être été déplacé ou supprimé."
+
+#: src/debfile.cpp
+msgid "We can't open this file"
+msgstr "Impossible d'ouvrir ce fichier"
+
+#: src/debfile.cpp
+msgid "We couldn't download what this app needs. Check your internet connection and try again."
+msgstr "Impossible de télécharger ce dont cette application a besoin. Vérifiez votre connexion Internet et réessayez."
+
+#: src/debfile.cpp
+msgid "You don't have permission to open this file."
+msgstr "Vous n'avez pas l'autorisation d'ouvrir ce fichier."
+
+#: src/qml/DebInstall.qml
+msgctxt "how far an install is"
+msgid "%1%"
+msgstr "%1 %"
+
+#: src/debfile.cpp
+msgid "This file changed after it was opened. Open it again to install it."
+msgstr "Ce fichier a changé depuis son ouverture. Ouvrez-le à nouveau pour l'installer."
+
+#: src/debfile.cpp
+msgid "This file would replace a part of Raye itself, so it can't be installed this way."
+msgstr "Ce fichier remplacerait une partie de Raye elle-même : il ne peut pas être installé de cette façon."

@@ -5,7 +5,8 @@
 set -e
 cd debian/tmp
 for path in usr/bin/raye-store usr/bin/plasma-discover usr/libexec/raye-store-* \
-        usr/share/applications/*.desktop usr/share/raye-store usr/share/polkit-1 \
+        usr/share/applications/*.desktop \
+        usr/share/applications/mimeapps.list usr/share/raye-store usr/share/polkit-1 \
         usr/lib/systemd/system/raye-store-* usr/lib/systemd/user/raye-store-* \
         usr/share/locale usr/share/krunner usr/share/dbus-1 usr/share/knotifications6; do
     if [ -e "$path" ]; then

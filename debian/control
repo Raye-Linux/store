@@ -20,7 +20,7 @@ Vcs-Git: https://github.com/Raye-Linux/store.git
 
 Package: raye-store
 Architecture: amd64
-Depends: flatpak, packagekit, appstream, polkitd, kio-extras, kde-cli-tools, raye-style,
+Depends: flatpak, packagekit, appstream, polkitd, pkexec, kio-extras, kde-cli-tools, raye-style,
          qml6-module-org-kde-kirigami, qml6-module-qtquick-layouts,
          qml6-module-qtquick-controls, qml6-module-qtquick-effects,
          qml6-module-org-kde-kirigamiaddons-components,
