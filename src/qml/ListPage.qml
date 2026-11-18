@@ -152,6 +152,7 @@ Item {
                 height: Theme.cardHeight
                 app: cell.app
                 windowsRow: listPage.mode !== "search" && listPage.spec !== null && listPage.spec !== undefined && listPage.spec.windows === true
+                insteadRow: listPage.mode === "search" || (listPage.spec !== null && listPage.spec !== undefined && listPage.spec.instead === true)
                 onClicked: listPage.open(catalog.find(cell.app.appId))
             }
         }

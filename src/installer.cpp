@@ -470,6 +470,10 @@ Installer::Installer(QObject *parent)
         if (!(installed ? WebAppAccess::grant(id) : WebAppAccess::revoke(id)))
             qWarning("raye-store: could not change the folders %s may write in", qPrintable(id));
     };
+    m_gameSetup = [](const QString &id) {
+        if (gameLaunchers().contains(id))
+            QProcess::startDetached(QStringLiteral("/usr/libexec/raye-store-games"), {QStringLiteral("setup"), id});
+    };
     // off the main thread: it looks through /proc
     m_cleanup = [this] {
         auto *watcher = new QFutureWatcher<QStringList>(this);
@@ -804,6 +808,8 @@ void Installer::onFinished(JobBackend *backend, const JobResult &result)
     if (state == Done && spec.source == QLatin1String("flatpak") && m_webAppAccess
         && (spec.action == QLatin1String("install") || spec.action == QLatin1String("remove")))
         m_webAppAccess(nameFromRef(spec.ref), spec.action == QLatin1String("install"));
+    if (state == Done && spec.source == QLatin1String("flatpak") && spec.action == QLatin1String("install") && m_gameSetup)
+        m_gameSetup(nameFromRef(spec.ref));
 
     if (state == Done && spec.action != QLatin1String("install")) {
         if (spec.ref == runtimesRef)
@@ -821,6 +827,11 @@ void Installer::onFinished(JobBackend *backend, const JobResult &result)
                         {QStringLiteral("action"), spec.action}, {QStringLiteral("state"), int(state)},
                         {QStringLiteral("reason"), int(reason)}, {QStringLiteral("reasonText"), message}});
     startNext();
+}
+
+QStringList Installer::gameLaunchers()
+{
+    return {QStringLiteral("com.valvesoftware.Steam")};
 }
 
 bool Installer::cancel(const QString &ref)

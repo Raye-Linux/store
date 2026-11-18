@@ -5,6 +5,7 @@
 #include <appstream.h>
 
 #include "catalog.h"
+#include "alternatives.h"
 #include "windowsprograms.h"
 
 #include <AppStreamQt/branding.h>
@@ -287,9 +288,11 @@ App fromComponent(const AppStream::Component &c)
     return app;
 }
 
+bool userReadsFrench();
+
 QList<App> loadExtras()
 {
-    return parseExtras(readSmall(kShare + QStringLiteral("/extras.json")));
+    return parseExtras(readSmall(kShare + QStringLiteral("/extras.json")), userReadsFrench());
 }
 
 struct Loaded {
@@ -320,7 +323,7 @@ bool canInstallWindowsPrograms()
 }
 
 // bump when App, Feeds or what fills them changes
-constexpr int kCacheFormat = 2;
+constexpr int kCacheFormat = 3;
 
 Loaded loadCached()
 {
@@ -379,6 +382,8 @@ Loaded loadEverything()
         if (!byId.contains(appKey(app.id)))
             byId.insert(appKey(app.id), app);
     }
+    // apps that do the job of a Windows program are found by its name
+    applyAlternatives(byId, parseAlternatives(readSmall(alternativesFile())));
     // the native version of a Windows program is found by its Windows name too
     for (auto it = windows.natives.cbegin(); it != windows.natives.cend(); ++it) {
         auto app = byId.find(it.key());
@@ -480,7 +485,7 @@ static Stream &appFields(Stream &s, A &a)
       % a.brandLight % a.brandDark % a.homepage % a.help % a.donate % a.bugtracker % a.licenseUrl % a.desktopId % a.isFree
       % a.preview % a.noDisplay % a.windowsState % a.windowsNote % a.windowsAntiCheat % a.downloadSize
       % a.verified % a.popularity % a.trending % a.updatedAt % a.addedAt % a.ratingAvg % a.ratingCount
-      % a.ratingHistogram % a.listed;
+      % a.ratingHistogram % a.listed % a.replaces;
     return s;
 }
 
@@ -570,8 +575,16 @@ QString appKind(const QStringList &categories)
     return categories.contains(QLatin1String("Game")) ? QStringLiteral("game") : QStringLiteral("app");
 }
 
-QList<App> parseExtras(const QByteArray &json)
+QList<App> parseExtras(const QByteArray &json, bool french)
 {
+    // {"en": ..., "fr": ...}, or plain text for both
+    const auto pick = [french](const QJsonValue &v) {
+        if (!v.isObject())
+            return v.toString();
+        const QJsonObject o = v.toObject();
+        const QString fr = o.value(QStringLiteral("fr")).toString();
+        return french && !fr.isEmpty() ? fr : o.value(QStringLiteral("en")).toString();
+    };
     static const QRegularExpression sha256(QStringLiteral("^[0-9a-f]{64}$"));
     QList<App> apps;
     const QJsonArray list = QJsonDocument::fromJson(json).object().value(QStringLiteral("apps")).toArray();
@@ -585,9 +598,19 @@ QList<App> parseExtras(const QByteArray &json)
         App app;
         app.id = o.value(QStringLiteral("id")).toString();
         app.name = o.value(QStringLiteral("name")).toString();
-        app.summary = o.value(QStringLiteral("summary")).toString();
-        app.description = o.value(QStringLiteral("description")).toString();
+        app.summary = pick(o.value(QStringLiteral("summary")));
+        app.description = pick(o.value(QStringLiteral("description")));
         app.icon = o.value(QStringLiteral("icon")).toString();
+        const QString homepage = o.value(QStringLiteral("homepage")).toString();
+        if (homepage.startsWith(QLatin1String("https://")))
+            app.homepage = homepage;
+        for (const QJsonValue &k : o.value(QStringLiteral("keywords")).toArray())
+            app.keywords.append(k.toString());
+        // the launcher the package installs, when it is not named after the id
+        static const QRegularExpression desktopFile(QStringLiteral("^[A-Za-z0-9][A-Za-z0-9._-]*\\.desktop$"));
+        const QString desktop = o.value(QStringLiteral("desktop")).toString();
+        if (desktopFile.match(desktop).hasMatch())
+            app.desktopId = desktop;
         app.developer = o.value(QStringLiteral("developer")).toString();
         app.license = o.value(QStringLiteral("license")).toString();
         app.source = QStringLiteral("raye");
@@ -939,6 +962,14 @@ int searchScore(const QString &query, const App &app)
                 return 50;
         }
     }
+    // the exact name of a Windows program this app stands in for: it is
+    // the answer, ahead of names that only start the same way
+    if (!app.replaces.isEmpty()) {
+        for (const QString &k : app.keywords) {
+            if (foldText(k).simplified() == q)
+                return 90;
+        }
+    }
     int best = 0;
     for (const QString &k : app.keywords) {
         const QString kw = foldText(k).simplified();
@@ -1187,6 +1218,23 @@ QStringList Catalog::windowsPrograms(const QString &which) const
     return ids;
 }
 
+QStringList Catalog::fromWindows() const
+{
+    // the catalog's own spelling of each id: Flathub renames by case alone
+    QHash<QString, QString> listed;
+    for (const App &app : m_apps) {
+        if (app.listed)
+            listed.insert(appKey(app.id).toLower(), app.id);
+    }
+    QStringList ids;
+    for (const QString &id : alternativePicks(parseAlternatives(readSmall(alternativesFile())))) {
+        const QString found = listed.value(appKey(id).toLower());
+        if (!found.isEmpty() && !ids.contains(found))
+            ids.append(found);
+    }
+    return ids;
+}
+
 int Catalog::rowCount(const QModelIndex &parent) const
 {
     return parent.isValid() ? 0 : int(m_apps.size());
@@ -1258,6 +1306,7 @@ QVariant Catalog::data(const QModelIndex &index, int role) const
     case WindowsNoteRole: return a.windowsNote;
     case DownloadSizeRole: return a.downloadSize;
     case WindowsAntiCheatRole: return a.windowsAntiCheat;
+    case ReplacesRole: return a.replaces;
     }
     return {};
 }
@@ -1300,7 +1349,7 @@ QHash<int, QByteArray> Catalog::roleNames() const
             {RatingCountRole, "ratingCount"}, {RatingHistogramRole, "ratingHistogram"},
             {KindRole, "kind"}, {ListedRole, "listed"}, {WindowsStateRole, "windowsState"},
             {WindowsNoteRole, "windowsNote"}, {DownloadSizeRole, "downloadSize"},
-            {WindowsAntiCheatRole, "windowsAntiCheat"}};
+            {WindowsAntiCheatRole, "windowsAntiCheat"}, {ReplacesRole, "replaces"}};
 }
 
 CatalogFilter::CatalogFilter(QObject *parent)

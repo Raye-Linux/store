@@ -49,6 +49,7 @@ Item {
         sourceComponent: CardRow {
             title: section.spec.title
             windowsRow: section.spec.windows === true
+            insteadRow: section.spec.instead === true
             loading: catalog.loading
             model: CatalogFilter {
                 kind: section.spec.kind || ""

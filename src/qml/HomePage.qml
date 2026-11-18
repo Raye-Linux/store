@@ -47,6 +47,9 @@ PageScroll {
         { title: i18nc("@title row of apps", "Top free apps"), kind: "app" },
         { title: i18nc("@title row of apps", "Trending"), ids: catalog.feed("trending") },
         { title: i18nc("@title row of apps", "Essential apps"), ids: Collections.essentials },
+        { title: i18nc("@title row of apps", "Coming from Windows?"), ids: catalog.fromWindows(), instead: true }
+    ])
+    readonly property var gameRows: ready([
         { title: i18nc("@title row of apps", "Top free games"), kind: "game" }
     ])
     // Windows programs: the ones Raye checked one by one, then all of them
@@ -81,6 +84,23 @@ PageScroll {
 
     Repeater {
         model: home.empty ? [] : home.firstRows
+        delegate: SectionRow {
+            required property var modelData
+            spec: modelData
+            page: home
+            onOpen: app => home.open(app)
+            onSeeAll: spec => home.showRow(spec)
+        }
+    }
+
+    LauncherSpotlight {
+        Layout.fillWidth: true
+        visible: !home.empty && launchers.length > 0
+        onOpen: app => home.open(app)
+    }
+
+    Repeater {
+        model: home.empty ? [] : home.gameRows
         delegate: SectionRow {
             required property var modelData
             spec: modelData

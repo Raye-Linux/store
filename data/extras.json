@@ -12,8 +12,108 @@
             "version": "0.9.0",
             "url": "https://github.com/storytold/craft-launcher/releases/download/v0.9.0/artcraft-launcher-0.9.0-linux-x86_64.deb",
             "sha256": "94e7e8c30ec9d50e7c2cf6df32f47dbb9f2863edde923d4ae9e8bbc54da47eb0",
-            "categories": ["Graphics", "AudioVideo", "Office"],
+            "categories": [
+                "Graphics",
+                "AudioVideo",
+                "Office"
+            ],
             "preview": true
+        },
+        {
+            "id": "com.teamviewer.TeamViewer",
+            "name": "TeamViewer",
+            "summary": {
+                "en": "Help someone at their PC, or get help at yours",
+                "fr": "Aidez quelqu'un sur son PC, ou faites-vous aider sur le vôtre"
+            },
+            "description": {
+                "en": "<p>TeamViewer shows another computer's screen and lets you work on it, or lets someone you trust work on yours. It talks to TeamViewer on Windows, Mac and phones, so family and support desks can reach you the way they always did.</p><p>Free for personal use. Companies need a license. Its setup adds TeamViewer's own source of updates.</p>",
+                "fr": "<p>TeamViewer affiche l'écran d'un autre ordinateur et vous permet d'y travailler, ou permet à une personne de confiance de travailler sur le vôtre. Il communique avec TeamViewer sur Windows, Mac et téléphone : votre famille ou un service d'assistance peut vous joindre comme avant.</p><p>Gratuit pour un usage personnel. Les entreprises ont besoin d'une licence. Son installation ajoute la source de mises à jour de TeamViewer.</p>"
+            },
+            "icon": "/usr/share/raye-store/icons/teamviewer.png",
+            "developer": "TeamViewer",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.teamviewer.com/",
+            "keywords": [
+                "remote",
+                "support",
+                "assistance",
+                "help",
+                "distance"
+            ],
+            "desktop": "com.teamviewer.TeamViewer.desktop",
+            "package": "teamviewer",
+            "version": "15.83.3",
+            "url": "https://dl.teamviewer.com/download/linux/version_15x/teamviewer_15.83.3_amd64.deb",
+            "sha256": "f3130d24edbe259ef5ba46a543c6d5a823aea2a14f533834f2e484bfdca68909",
+            "categories": [
+                "Network",
+                "RemoteAccess"
+            ]
+        },
+        {
+            "id": "io.balena.Etcher",
+            "name": "balenaEtcher",
+            "summary": {
+                "en": "Write a system image to a USB stick or SD card",
+                "fr": "Écrivez une image système sur une clé USB ou une carte SD"
+            },
+            "description": {
+                "en": "<p>balenaEtcher writes an .iso or .img file to a USB stick or an SD card, then checks the copy. It only lists removable drives, so your own disk stays out of reach.</p><p>Use it the way you used Rufus on Windows, to make a stick that starts another system.</p>",
+                "fr": "<p>balenaEtcher écrit un fichier .iso ou .img sur une clé USB ou une carte SD, puis vérifie la copie. Il ne montre que les supports amovibles : votre propre disque reste hors d'atteinte.</p><p>Servez-vous-en comme de Rufus sur Windows, pour faire une clé qui démarre un autre système.</p>"
+            },
+            "icon": "/usr/share/raye-store/icons/balena-etcher.png",
+            "developer": "Balena",
+            "license": "Apache-2.0",
+            "homepage": "https://etcher.balena.io/",
+            "keywords": [
+                "usb",
+                "iso",
+                "flash",
+                "rufus",
+                "sd card",
+                "bootable"
+            ],
+            "desktop": "balena-etcher.desktop",
+            "package": "balena-etcher",
+            "version": "2.1.9",
+            "url": "https://github.com/balena-io/etcher/releases/download/v2.1.9/balena-etcher_2.1.9_amd64.deb",
+            "sha256": "7e0d0e0986e5d0f3d9c03a4c0004f9891235150e0da99fa0bc332d8c03f1a4c0",
+            "categories": [
+                "Utility",
+                "System"
+            ]
+        },
+        {
+            "id": "net.mullvad.MullvadVPN",
+            "name": "Mullvad VPN",
+            "summary": {
+                "en": "A VPN that asks for no email and keeps no logs",
+                "fr": "Un VPN qui ne demande pas d'adresse e-mail et ne garde aucun journal"
+            },
+            "description": {
+                "en": "<p>Mullvad VPN sends your connection through Mullvad's servers, over WireGuard, so the network you're on and the sites you visit see less of you. You get an account number instead of signing up with an email.</p><p>Mullvad is paid by the month.</p>",
+                "fr": "<p>Mullvad VPN fait passer votre connexion par les serveurs de Mullvad, avec WireGuard : le réseau où vous êtes et les sites que vous visitez en voient moins sur vous. On vous donne un numéro de compte, sans inscription par e-mail.</p><p>Mullvad se paie au mois.</p>"
+            },
+            "icon": "/usr/share/raye-store/icons/mullvad-vpn.png",
+            "developer": "Mullvad VPN AB",
+            "license": "GPL-3.0-only",
+            "homepage": "https://mullvad.net/",
+            "keywords": [
+                "vpn",
+                "privacy",
+                "wireguard",
+                "vie privée"
+            ],
+            "desktop": "mullvad-vpn.desktop",
+            "package": "mullvad-vpn",
+            "version": "2026.5",
+            "url": "https://github.com/mullvad/mullvadvpn-app/releases/download/2026.5/MullvadVPN-2026.5_amd64.deb",
+            "sha256": "aa6bd00452588597f50e8ca2f02bb91e9c295c4f01b0ae907354552e7428e7ab",
+            "categories": [
+                "Network",
+                "Security"
+            ]
         }
     ]
 }

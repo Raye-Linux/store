@@ -591,6 +591,49 @@ Flickable {
                     }
                 }
             }
+            // a launcher Raye sets up, or an app that does the job of a
+            // Windows program with no version here
+            Rectangle {
+                Layout.fillWidth: true
+                visible: insteadTitle.text !== "" || launcherText.text !== ""
+                implicitHeight: insteadColumn.implicitHeight + 2 * Theme.s4
+                radius: Theme.radiusCard - 2
+                color: Qt.alpha(Theme.accentText, Theme.night ? 0.12 : 0.07)
+                border.width: 1
+                border.color: Qt.alpha(Theme.accentText, 0.3)
+                ColumnLayout {
+                    id: insteadColumn
+                    anchors.fill: parent
+                    anchors.margins: Theme.s4
+                    spacing: Theme.s2
+                    Text {
+                        id: insteadTitle
+                        Layout.fillWidth: true
+                        visible: text !== ""
+                        text: Format.replacesText(page.app)
+                        font: Theme.bodyStrong
+                        color: Theme.text
+                        wrapMode: Text.Wrap
+                    }
+                    Text {
+                        Layout.fillWidth: true
+                        visible: insteadTitle.text !== ""
+                        text: Format.replacesExplained(page.app)
+                        font: Theme.caption
+                        color: Theme.textSecondary
+                        wrapMode: Text.Wrap
+                    }
+                    Text {
+                        id: launcherText
+                        Layout.fillWidth: true
+                        visible: text !== ""
+                        text: Format.launcherNote(page.app)
+                        font: Theme.caption
+                        color: Theme.text
+                        wrapMode: Text.Wrap
+                    }
+                }
+            }
             Text {
                 Layout.fillWidth: true
                 visible: page.app && page.app.preview === true

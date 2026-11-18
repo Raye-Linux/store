@@ -1,0 +1,186 @@
+#!/usr/bin/python3 -I
+# SPDX-License-Identifier: GPL-3.0-or-later
+"""Sets up a game launcher the Store has just installed.
+
+    raye-store-games setup <flathub id>
+
+Runs as the person, once per app: what is set here is a starting point,
+and a second install never undoes what they changed since.
+
+Steam: Steam Play (Proton) for every game, the box "Enable Steam Play
+for all other titles" ticked, written in Steam's own config.vdf before
+Steam first starts. A config that already names a tool for all games is
+left as it is, and so is one that cannot be read.
+"""
+
+import os
+import re
+import sys
+import tempfile
+
+STEAM = "com.valvesoftware.Steam"
+STEAM_CONFIG = ".var/app/" + STEAM + "/.local/share/Steam/config/config.vdf"
+DEFAULT_TOOL = [("name", "proton_experimental"), ("config", ""), ("priority", "75")]
+
+TOKEN = re.compile(r'\s+|//[^\n]*|"((?:[^"\\]|\\.)*)"|([{}])|([^\s{}"]+)|(")', re.S)
+UNESCAPE = {"n": "\n", "t": "\t", "\\": "\\", '"': '"'}
+
+
+def tokens(text):
+    pos = 0
+    while pos < len(text):
+        m = TOKEN.match(text, pos)
+        pos = m.end()
+        quoted, brace, bare, stray = m.groups()
+        if stray:
+            raise ValueError("unterminated string")
+        if quoted is not None:
+            yield "str", re.sub(r"\\(.)", lambda e: UNESCAPE.get(e.group(1), e.group(1)), quoted)
+        elif bare is not None:
+            yield "str", bare
+        elif brace:
+            yield brace, brace
+
+
+def parse_vdf(text):
+    """Steam's KeyValues text as nested lists of (key, value or list)."""
+    stack = [[]]
+    key = None
+    for kind, value in tokens(text):
+        if kind == "str":
+            if key is None:
+                key = value
+            else:
+                stack[-1].append((key, value))
+                key = None
+        elif kind == "{":
+            if key is None:
+                raise ValueError("a block without a name")
+            block = []
+            stack[-1].append((key, block))
+            stack.append(block)
+            key = None
+        else:
+            if key is not None or len(stack) == 1:
+                raise ValueError("unexpected }")
+            stack.pop()
+    if key is not None or len(stack) != 1:
+        raise ValueError("the file ends too early")
+    return stack[0]
+
+
+def quote(s):
+    return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def dump_vdf(tree, depth=0):
+    out = []
+    tabs = "\t" * depth
+    for key, value in tree:
+        if isinstance(value, list):
+            out.append(f"{tabs}{quote(key)}\n{tabs}{{\n{dump_vdf(value, depth + 1)}{tabs}}}\n")
+        else:
+            out.append(f"{tabs}{quote(key)}\t\t{quote(value)}\n")
+    return "".join(out)
+
+
+def child(tree, key):
+    """The value under `key` (Steam ignores case), or None."""
+    if not isinstance(tree, list):
+        return None
+    for k, v in tree:
+        if k.lower() == key.lower():
+            return v
+    return None
+
+
+def block(tree, key):
+    found = child(tree, key)
+    if isinstance(found, list):
+        return found
+    if found is not None:
+        raise ValueError(f"{key} is not a block")
+    found = []
+    tree.append((key, found))
+    return found
+
+
+def write_atomic(path, text):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".raye-")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        os.unlink(tmp)
+        raise
+
+
+def done_before(state):
+    try:
+        with open(state) as f:
+            return set(f.read().split())
+    except FileNotFoundError:
+        return set()
+
+
+def note_done(state, app_id):
+    os.makedirs(os.path.dirname(state), exist_ok=True)
+    with open(state, "a") as f:
+        f.write(app_id + "\n")
+
+
+def steam_play_for_all(path):
+    """"done", "chosen" when the file already names a tool for all games,
+    or "unsafe" when it cannot be read or written safely."""
+    tree = []
+    if os.path.lexists(path):
+        if os.path.islink(path) or not os.path.isfile(path):
+            return "unsafe"
+        with open(path, encoding="utf-8", errors="strict") as f:
+            try:
+                tree = parse_vdf(f.read())
+            except (ValueError, UnicodeDecodeError):
+                return "unsafe"
+    try:
+        steam = block(block(block(block(tree, "InstallConfigStore"), "Software"), "Valve"), "Steam")
+        tools = block(steam, "CompatToolMapping")
+    except ValueError:
+        return "unsafe"
+    if child(tools, "0") is not None:
+        return "chosen"
+    tools.append(("0", list(DEFAULT_TOOL)))
+    write_atomic(path, dump_vdf(tree))
+    return "done"
+
+
+def setup(app_id, home, state):
+    """"done", "kept" (nothing changed) or "unknown" (not a launcher of ours)."""
+    if app_id != STEAM:
+        return "unknown"
+    if app_id in done_before(state):
+        return "kept"
+    try:
+        result = steam_play_for_all(os.path.join(home, STEAM_CONFIG))
+        if result == "unsafe":
+            return "kept"
+        note_done(state, app_id)
+    except OSError as e:
+        print(f"raye-store-games: {e}", file=sys.stderr)
+        return "kept"
+    return "done" if result == "done" else "kept"
+
+
+def main(argv, env=os.environ):
+    if len(argv) != 2 or argv[0] != "setup":
+        print(__doc__.strip().splitlines()[2].strip(), file=sys.stderr)
+        return 2
+    home = env.get("HOME") or os.path.expanduser("~")
+    state_home = env.get("XDG_STATE_HOME") or os.path.join(home, ".local", "state")
+    print(setup(argv[1], home, os.path.join(state_home, "raye-store", "games-setup")))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

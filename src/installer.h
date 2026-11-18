@@ -229,6 +229,11 @@ public:
     // what runs once a Flathub app is on this PC or gone from it: lets a
     // Chromium browser make apps of sites (webappaccess.h)
     void setWebAppAccess(std::function<void(const QString &, bool)> hook) { m_webAppAccess = std::move(hook); }
+    // what runs once a game launcher from Flathub is on this PC: sets it
+    // up the Raye way (raye-store-games); the tests put their own
+    void setGameSetup(std::function<void(const QString &)> hook) { m_gameSetup = std::move(hook); }
+    // the Flathub ids raye-store-games knows
+    static QStringList gameLaunchers();
     // whether a job's app is on this PC, asked of flatpak or dpkg-query;
     // Unknown when they did not start, hung or failed
     static Presence presence(const JobSpec &job, int timeoutMs = 20000);
@@ -296,6 +301,7 @@ private:
     std::function<void(const QString &)> m_closeApp;
     std::function<Presence(const JobSpec &)> m_stillInstalled;
     std::function<void(const QString &, bool)> m_webAppAccess;
+    std::function<void(const QString &)> m_gameSetup;
 };
 
 // How a job ended.

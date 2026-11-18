@@ -198,6 +198,7 @@ QStringList defaultSourceRoots()
         // popularity, ratings and picks; Raye's own entries
         QStringLiteral("/var/cache/raye-store/feeds"),
         QStringLiteral("/usr/share/raye-store/extras.json"),
+        QStringLiteral("/usr/share/raye-store/windows-alternatives.json"),
         QStringLiteral("/usr/share/raye-store/curation.json"),
         QStringLiteral("/usr/share/raye-store/apt-rank.tsv"),
     };

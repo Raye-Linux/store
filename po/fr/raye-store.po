@@ -1522,3 +1522,54 @@ msgstr "Ce fichier a changé depuis son ouverture. Ouvrez-le à nouveau pour l'i
 #: src/debfile.cpp
 msgid "This file would replace a part of Raye itself, so it can't be installed this way."
 msgstr "Ce fichier remplacerait une partie de Raye elle-même : il ne peut pas être installé de cette façon."
+
+#: src/qml/ui/Format.qml
+msgctxt "@info %1 is one to three Windows program names"
+msgid "Instead of %1"
+msgstr "À la place de %1"
+
+#: src/qml/ui/Format.qml
+msgctxt "@info separator between program names"
+msgid ", "
+msgstr ", "
+
+#: src/qml/ui/Format.qml
+msgid "%1 has no version for Raye. This app does the same kind of work."
+msgstr "%1 n'existe pas pour Raye. Cette appli fait le même genre de travail."
+
+#: src/qml/ui/Format.qml
+msgid "These Windows programs have no version for Raye. This app does the same kind of work."
+msgstr "Ces programmes Windows n'existent pas pour Raye. Cette appli fait le même genre de travail."
+
+#: src/qml/ui/Format.qml
+msgid "Raye turns on Steam Play for every game when it installs Steam, so Windows games install and start with one click. Games whose anti-cheat refuses Linux still won't start."
+msgstr "Raye active Steam Play pour tous les jeux en installant Steam : les jeux Windows s'installent et se lancent en un clic. Les jeux dont l'anti-triche refuse Linux ne démarreront toujours pas."
+
+#: src/qml/ui/Format.qml
+msgid "Sign in to Epic Games, GOG and Amazon from Heroic to see all your games. The first time it starts, Heroic downloads what Windows games need to run."
+msgstr "Connectez-vous à Epic Games, GOG et Amazon dans Heroic pour retrouver tous vos jeux. À son premier lancement, Heroic télécharge ce qu'il faut pour faire tourner les jeux Windows."
+
+#: src/qml/ui/LauncherSpotlight.qml
+msgctxt "@info what Steam brings"
+msgid "Your Steam library. Windows games run too: Steam Play is already on."
+msgstr "Votre bibliothèque Steam. Les jeux Windows marchent aussi : Steam Play est déjà activé."
+
+#: src/qml/ui/LauncherSpotlight.qml
+msgctxt "@info what Heroic brings"
+msgid "Your Epic Games, GOG and Amazon games, in one launcher."
+msgstr "Vos jeux Epic Games, GOG et Amazon, dans un seul lanceur."
+
+#: src/qml/ui/LauncherSpotlight.qml
+msgctxt "@title"
+msgid "Bring your PC games"
+msgstr "Retrouvez vos jeux PC"
+
+#: src/qml/BrowsePage.qml
+msgctxt "@title row of games"
+msgid "More game launchers"
+msgstr "Autres lanceurs de jeux"
+
+#: src/qml/BrowsePage.qml src/qml/HomePage.qml
+msgctxt "@title row of apps"
+msgid "Coming from Windows?"
+msgstr "Vous venez de Windows ?"

@@ -135,6 +135,33 @@ QtObject {
         return ""
     }
 
+    // the Windows programs with no version here that this app stands in for
+    function replacesText(app) {
+        const names = app && app.replaces ? app.replaces : []
+        if (names.length === 0)
+            return ""
+        return i18nc("@info %1 is one to three Windows program names", "Instead of %1",
+                     names.slice(0, 3).join(i18nc("@info separator between program names", ", ")))
+    }
+    function replacesExplained(app) {
+        const names = app && app.replaces ? app.replaces : []
+        return names.length === 1 ? i18n("%1 has no version for Raye. This app does the same kind of work.", names[0])
+             : names.length > 1 ? i18n("These Windows programs have no version for Raye. This app does the same kind of work.")
+             : ""
+    }
+    // what Raye does for a game launcher, on its page
+    function launcherNote(app) {
+        switch (app ? app.appId : "") {
+        case "com.valvesoftware.Steam":
+        case "com.valvesoftware.Steam.desktop":
+            return i18n("Raye turns on Steam Play for every game when it installs Steam, so Windows games install and start with one click. Games whose anti-cheat refuses Linux still won't start.")
+        case "com.heroicgameslauncher.hgl":
+        case "com.heroicgameslauncher.hgl.desktop":
+            return i18n("Sign in to Epic Games, GOG and Amazon from Heroic to see all your games. The first time it starts, Heroic downloads what Windows games need to run.")
+        }
+        return ""
+    }
+
     function date(d) {
         if (!d)
             return ""

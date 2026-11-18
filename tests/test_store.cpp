@@ -810,6 +810,28 @@ private Q_SLOTS:
         QVERIFY(parseExtras("not json").isEmpty());
     }
 
+    // an entry can say things in both languages; plain text is for both
+    void extrasInFrench()
+    {
+        const QByteArray json =
+            "{\"apps\":[{\"id\":\"com.teamviewer.TeamViewer\",\"name\":\"TeamViewer\","
+            "\"summary\":{\"en\":\"Remote help\",\"fr\":\"Aide \u00e0 distance\"},"
+            "\"description\":{\"en\":\"<p>Help</p>\"},\"homepage\":\"https://www.teamviewer.com/\","
+            "\"keywords\":[\"remote\",\"support\"],\"desktop\":\"com.teamviewer.TeamViewer.desktop\",\"package\":\"teamviewer\",\"url\":\"https://example.org/t.deb\","
+            "\"sha256\":\"94e7e8c30ec9d50e7c2cf6df32f47dbb9f2863edde923d4ae9e8bbc54da47eb0\"}]}";
+        const App en = parseExtras(json).value(0);
+        QCOMPARE(en.summary, QStringLiteral("Remote help"));
+        QCOMPARE(en.homepage, QStringLiteral("https://www.teamviewer.com/"));
+        QCOMPARE(en.keywords, (QStringList{QStringLiteral("remote"), QStringLiteral("support")}));
+        QCOMPARE(en.desktopId, QStringLiteral("com.teamviewer.TeamViewer.desktop"));
+        // a launcher name is a file name, never a path
+        QVERIFY(parseExtras(QByteArray(json).replace("com.teamviewer.TeamViewer.desktop", "../x.desktop")).value(0).desktopId.isEmpty());
+        const App fr = parseExtras(json, true).value(0);
+        QCOMPARE(fr.summary, QStringLiteral("Aide \u00e0 distance"));
+        // no French: the English one
+        QCOMPARE(fr.description, QStringLiteral("<p>Help</p>"));
+    }
+
     void extraCommands()
     {
         QCOMPARE(Installer::command(QStringLiteral("install"), QStringLiteral("raye"), QStringLiteral("artcraft-launcher")),

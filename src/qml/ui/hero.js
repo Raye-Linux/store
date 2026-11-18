@@ -6,7 +6,7 @@
 
 var apps = ["org.mozilla.firefox", "com.discordapp.Discord", "com.valvesoftware.Steam", "com.obsproject.Studio",
             "org.gimp.GIMP", "org.libreoffice.LibreOffice", "org.videolan.VLC", "com.spotify.Client",
-            "org.kde.krita", "org.blender.Blender", "org.kde.kdenlive", "org.mozilla.Thunderbird",
+            "org.kde.krita", "org.blender.Blender", "org.kde.kdenlive", "org.mozilla.thunderbird",
             "org.audacityteam.Audacity", "org.inkscape.Inkscape"]
 
 // the list, turned so that day `day` (days since 1970) starts it

@@ -37,6 +37,7 @@ PageScroll {
     Component.onCompleted: if (!catalog.loading) fill()
 
     readonly property var rows: ready(games ? [
+        { title: i18nc("@title row of games", "More game launchers"), ids: Collections.launchers, instead: true },
         { title: i18nc("@title row of apps", "Top free games"), kind: "game" },
         { title: i18nc("@title row of apps", "Trending games"), kind: "game", ids: catalog.feed("trending") },
         { title: i18nc("@title row of apps", "Best rated games"), kind: "game", sort: "rating", minRatings: 30 },
@@ -57,6 +58,7 @@ PageScroll {
     ] : [
         { title: i18nc("@title row of apps", "Top free apps"), kind: "app" },
         { title: i18nc("@title row of apps", "Trending apps"), kind: "app", ids: catalog.feed("trending") },
+        { title: i18nc("@title row of apps", "Coming from Windows?"), ids: catalog.fromWindows(), instead: true },
         { title: i18nc("@title row of apps", "Best rated"), kind: "app", sort: "rating", minRatings: 50 },
         { title: i18nc("@title row of apps", "New and notable"), kind: "app", ids: catalog.feed("recently-added") },
         { title: i18nc("@title row of apps", "Productivity"), kind: "app", category: "Office" },
@@ -111,6 +113,12 @@ PageScroll {
                 onClicked: browsePage.showRow({ title: modelData.name, kind: browsePage.kind, category: modelData.id })
             }
         }
+    }
+
+    LauncherSpotlight {
+        Layout.fillWidth: true
+        visible: browsePage.games && launchers.length > 0
+        onOpen: app => browsePage.open(app)
     }
 
     Repeater {

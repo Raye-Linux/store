@@ -145,6 +145,25 @@ private Q_SLOTS:
         QCOMPARE(calls.size(), 2);
     }
 
+    void gameLaunchersAreSetUpAfterInstall()
+    {
+        QStringList calls;
+        m_installer->setGameSetup([&calls](const QString &id) { calls.append(id); });
+        m_installer->setStillInstalled([](const JobSpec &) { return Installer::Absent; });
+        const QVariantMap steam = flatpakApp(QStringLiteral("com.valvesoftware.Steam"), QStringLiteral("Steam"));
+        m_installer->get(steam);
+        m_flatpak->end(false, QStringLiteral("no space"));
+        QVERIFY(calls.isEmpty());
+        m_installer->get(steam);
+        m_flatpak->end(true);
+        QCOMPARE(calls, QStringList{QStringLiteral("com.valvesoftware.Steam")});
+        // removing it sets nothing up
+        m_installer->uninstall(steam);
+        m_flatpak->end(true);
+        QCOMPARE(calls.size(), 1);
+        QVERIFY(Installer::gameLaunchers().contains(QStringLiteral("com.valvesoftware.Steam")));
+    }
+
     void getsQueueUpOneRuns()
     {
         QSignalSpy busy(m_installer, &Installer::busyChanged);

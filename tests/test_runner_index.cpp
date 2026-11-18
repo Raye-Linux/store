@@ -178,6 +178,7 @@ private Q_SLOTS:
         QVERIFY(roots.contains(QStringLiteral("/var/lib/swcatalog")));
         QVERIFY(roots.contains(QStringLiteral("/var/cache/raye-store/feeds")));
         QVERIFY(roots.contains(QStringLiteral("/usr/share/raye-store/extras.json")));
+        QVERIFY(roots.contains(QStringLiteral("/usr/share/raye-store/windows-alternatives.json")));
         QVERIFY(roots.contains(QStringLiteral("/usr/share/applications")));
     }
 };

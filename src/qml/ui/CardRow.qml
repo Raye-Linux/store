@@ -17,6 +17,8 @@ ColumnLayout {
     property bool loading: false
     // a row of Windows programs: native versions say they are native
     property bool windowsRow: false
+    // a row of apps that do the job of Windows programs: the cards say which
+    property bool insteadRow: false
     property bool showAll: count > 0 && !loading
     readonly property int count: Array.isArray(model) ? model.length : model ? model.count : 0
     signal open(var app)
@@ -90,6 +92,7 @@ ColumnLayout {
                     y: Theme.s4
                     app: cell.app
                     windowsRow: row.windowsRow
+                    insteadRow: row.insteadRow
                     onClicked: row.open(catalog.find(cell.app.appId))
                     onActiveFocusChanged: if (activeFocus) list.positionViewAtIndex(cell.index, ListView.Contain)
                 }

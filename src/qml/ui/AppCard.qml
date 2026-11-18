@@ -16,6 +16,10 @@ T.AbstractButton {
     // in a row of Windows programs; elsewhere a native app shows its category
     property bool windowsRow: false
     readonly property string windowsLabel: !app || (app.windowsState === "native" && !windowsRow) ? "" : Format.windowsLabel(app)
+    // in a row of apps that stand in for Windows programs, or in search
+    // results: which program, instead of the category
+    property bool insteadRow: false
+    readonly property string insteadLabel: insteadRow ? Format.replacesText(app) : ""
     function refresh() { installed = app && app.ref ? catalog.isInstalled(app.ref) : false }
     onAppChanged: refresh()
     Connections {
@@ -106,10 +110,13 @@ T.AbstractButton {
             // a Windows program says how it runs here instead of its category
             Text {
                 Layout.fillWidth: true
-                text: !card.app ? "" : card.windowsLabel || Format.categoryName(card.app.categories)
+                text: !card.app ? "" : card.windowsLabel || card.insteadLabel || Format.categoryName(card.app.categories)
                 visible: text !== ""
                 font: card.windowsLabel ? Theme.captionStrong : Theme.caption
-                color: card.windowsLabel ? Format.windowsTint(card.app) : Theme.textSecondary
+                color: card.windowsLabel ? Format.windowsTint(card.app) : card.insteadLabel ? Theme.accentText : Theme.textSecondary
+                // "Instead of Microsoft Office" needs the second line
+                wrapMode: card.insteadLabel && !card.windowsLabel ? Text.Wrap : Text.NoWrap
+                maximumLineCount: 2
                 elide: Text.ElideRight
             }
             Item { Layout.fillHeight: true }

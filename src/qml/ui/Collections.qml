@@ -11,7 +11,7 @@ QtObject {
         { id: "work", name: i18nc("@title collection", "Work from home"),
           subtitle: i18nc("@info collection", "Calls, chat, documents, mail"),
           ids: ["us.zoom.Zoom", "com.slack.Slack", "com.github.IsmaelMartinez.teams_for_linux", "org.libreoffice.LibreOffice",
-                "org.onlyoffice.desktopeditors", "org.mozilla.Thunderbird", "im.riot.Riot", "org.signal.Signal",
+                "org.onlyoffice.desktopeditors", "org.mozilla.thunderbird", "im.riot.Riot", "org.signal.Signal",
                 "md.obsidian.Obsidian", "com.nextcloud.desktopclient.nextcloud", "com.bitwarden.desktop", "org.jitsi.jitsi-meet"] },
         { id: "stream", name: i18nc("@title collection", "Start streaming"),
           subtitle: i18nc("@info collection", "Go live, record, clean up your sound"),
@@ -41,6 +41,14 @@ QtObject {
         "com.teeworlds.Teeworlds", "com.etlegacy.ETLegacy", "net.froemling.bombsquad", "com.play0ad.zeroad", "org.wesnoth.Wesnoth",
         "org.hedgewars.Hedgewars", "net.veloren.airshipper", "de.blobbyvolley.BlobbyVolley2", "com.fightcade.Fightcade",
         "com.spacestation14.Launcher", "io.github.ezQuake"]
+
+    // the other ways to play what people own on Windows, after Steam and
+    // Heroic: Battle.net, EA and Ubisoft through Lutris or Bottles,
+    // Minecraft, Roblox, Xbox cloud games, streaming from another PC
+    readonly property var launchers: ["net.lutris.Lutris", "com.usebottles.bottles", "com.mojang.Minecraft",
+        "org.prismlauncher.PrismLauncher", "org.vinegarhq.Sober", "io.github.unknownskl.greenlight", "io.itch.itch",
+        "com.vysp3r.ProtonPlus", "com.moonlight_stream.Moonlight", "com.valvesoftware.SteamLink",
+        "com.parsecgaming.parsec", "io.github.benjamimgois.goverlay", "org.libretro.RetroArch"]
 
     // the apps people look for first, all native: games through Steam and
     // Heroic (Epic, GOG), the usual everyday apps

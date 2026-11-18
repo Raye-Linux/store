@@ -65,6 +65,9 @@ struct App {
     QString windowsNote;     // what Raye says about it, in the user's language
     bool windowsAntiCheat = false; // blocked by an anti-cheat, not by something missing
     qint64 downloadSize = 0; // the installer's size, when known
+    // Windows programs with no version here that this app stands in for
+    // (alternatives.h)
+    QStringList replaces;
     // from the feeds
     bool verified = false;
     qint64 popularity = 0;   // installs last month (archive apps: scaled)
@@ -81,8 +84,9 @@ struct App {
 };
 
 // Apps Raye offers itself, from extras.json. An entry without an https
-// URL, a full SHA-256 or a plain package name is left out.
-QList<App> parseExtras(const QByteArray &json);
+// URL, a full SHA-256 or a plain package name is left out. Summary and
+// description are plain text or {"en": ..., "fr": ...}.
+QList<App> parseExtras(const QByteArray &json, bool french = false);
 
 // Picks the entry to keep when the same app exists twice: Flathub wins,
 // it is newer and runs in a sandbox.
@@ -202,7 +206,7 @@ public:
         MinimumAgeRole, BrandLightRole, BrandDarkRole, UrlsRole, DesktopIdRole, IsFreeRole,
         VerifiedRole, PopularityRole, TrendingRole, UpdatedAtRole, AddedAtRole, RatingAvgRole,
         RatingCountRole, RatingHistogramRole, KindRole, ListedRole, SystemCopyRole, WindowsStateRole,
-        WindowsNoteRole, DownloadSizeRole, WindowsAntiCheatRole
+        WindowsNoteRole, DownloadSizeRole, WindowsAntiCheatRole, ReplacesRole
     };
 
     explicit Catalog(QObject *parent = nullptr);
@@ -224,6 +228,9 @@ public:
     // Windows programs in the list's order: "optimized" for those alone,
     // anything else for all of them (native versions included)
     Q_INVOKABLE QStringList windowsPrograms(const QString &which = {}) const;
+    // apps that do the job of Windows programs with no version here,
+    // first choices first (alternatives.h)
+    Q_INVOKABLE QStringList fromWindows() const;
     bool loading() const { return m_loading; }
     bool settled() const { return m_settled; }
     // where the last list is kept between runs; RAYE_STORE_CACHE names another
