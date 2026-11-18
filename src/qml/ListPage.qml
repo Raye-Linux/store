@@ -116,6 +116,7 @@ Item {
 
     GridView {
         id: grid
+        WheelScroll { target: grid }
         // 8 px either side so the cards' shadows are not cut
         width: listPage.usable + Theme.rowSpacing + 16
         y: header.height

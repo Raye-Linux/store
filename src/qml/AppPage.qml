@@ -11,6 +11,7 @@ import org.raye.store.data
 
 Flickable {
     id: page
+    WheelScroll { target: page }
     property var app: null
     signal back()
     signal open(var app)

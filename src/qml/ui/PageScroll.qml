@@ -7,6 +7,7 @@ import QtQuick.Controls as QQC2
 
 Flickable {
     id: page
+    WheelScroll { target: page }
 
     default property alias content: column.data
     property real padding: Theme.contentPadding
