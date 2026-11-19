@@ -21,6 +21,7 @@
 #include <AppStreamQt/release.h>
 #include <AppStreamQt/screenshot.h>
 #include <AppStreamQt/video.h>
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -299,7 +300,8 @@ struct Loaded {
     QList<App> apps;
     Feeds feeds;
     QStringList windowsOrder;
-    QByteArray bytes; // the same, as the cache keeps it
+    QByteArray bytes;  // the same, as the cache keeps it (until it is saved)
+    QByteArray digest; // catalogDigest(bytes)
 };
 
 QString windowsDataFile()
@@ -333,7 +335,7 @@ Loaded loadCached()
         return out;
     const QByteArray bytes = f.readAll();
     if (decodeCatalog(bytes, catalogCacheStamp(), out.apps, out.feeds, out.windowsOrder))
-        out.bytes = bytes;
+        out.digest = catalogDigest(bytes);
     else
         out = Loaded();
     return out;
@@ -409,6 +411,7 @@ Loaded loadEverything()
         return a.name.compare(b.name, Qt::CaseInsensitive) < 0;
     });
     out.bytes = encodeCatalog(out.apps, out.feeds, out.windowsOrder, catalogCacheStamp());
+    out.digest = catalogDigest(out.bytes);
     return out;
 }
 
@@ -523,6 +526,11 @@ QByteArray encodeCatalog(const QList<App> &apps, const Feeds &feeds, const QStri
     s << sorted(feeds.apps) << sorted(feeds.lists) << sorted(feeds.ratings) << feeds.pickOfTheDay << feeds.picksOfTheWeek
       << windowsOrder;
     return bytes;
+}
+
+QByteArray catalogDigest(const QByteArray &bytes)
+{
+    return QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
 }
 
 bool decodeCatalog(const QByteArray &bytes, const QString &stamp, QList<App> &apps, Feeds &feeds, QStringList &windowsOrder)
@@ -1026,12 +1034,12 @@ void Catalog::reload()
     // the GUI thread only swaps lists: reading, parsing and comparing all
     // happen on a worker, so the window keeps resizing and painting
     auto show = [this](Loaded loaded) {
-        if (!loaded.bytes.isEmpty() && loaded.bytes == m_shown)
+        if (!loaded.digest.isEmpty() && loaded.digest == m_shown)
             return; // the same list again: no reset, no rebuilt rows
         m_windowsOrder = std::move(loaded.windowsOrder);
         setFeeds(std::move(loaded.feeds));
         setApps(std::move(loaded.apps));
-        m_shown = std::move(loaded.bytes);
+        m_shown = std::move(loaded.digest);
         refreshInstalled();
         if (m_loading) {
             m_loading = false;
@@ -1052,6 +1060,7 @@ void Catalog::reload()
         watcher->setFuture(QtConcurrent::run([] {
             Loaded loaded = loadEverything();
             saveCache(loaded.bytes);
+            loaded.bytes.clear();
             return loaded;
         }));
     };
@@ -1063,7 +1072,7 @@ void Catalog::reload()
     auto *cached = new QFutureWatcher<Loaded>(this);
     connect(cached, &QFutureWatcher<Loaded>::finished, this, [cached, show, full] {
         Loaded loaded = cached->result();
-        if (!loaded.bytes.isEmpty())
+        if (!loaded.digest.isEmpty())
             show(std::move(loaded));
         cached->deleteLater();
         full();

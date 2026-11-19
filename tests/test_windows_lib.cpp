@@ -189,6 +189,16 @@ private Q_SLOTS:
         QCOMPARE(guessCategories(QStringLiteral("Roblox Roblox Studio")), QStringLiteral("Utility;"));
         QCOMPARE(guessCategories(QStringLiteral("Affinity Affinity")), QStringLiteral("Graphics;"));
         QCOMPARE(guessCategories(QStringLiteral("TikTok LIVE Studio TikTok LIVE Studio")), QStringLiteral("AudioVideo;Video;"));
+        QCOMPARE(guessCategories(QStringLiteral("foobar2000 foobar2000")), QStringLiteral("AudioVideo;Audio;"));
+        QCOMPARE(guessCategories(QStringLiteral("Winamp Winamp")), QStringLiteral("AudioVideo;Audio;"));
+        QCOMPARE(guessCategories(QStringLiteral("AIMP AIMP")), QStringLiteral("AudioVideo;Audio;"));
+        QCOMPARE(guessCategories(QStringLiteral("iTunes iTunes")), QStringLiteral("AudioVideo;Audio;"));
+        QCOMPARE(guessCategories(QStringLiteral("Mp3tag Mp3tag")), QStringLiteral("AudioVideo;Audio;"));
+        QCOMPARE(guessCategories(QStringLiteral("HeidiSQL HeidiSQL")), QStringLiteral("Development;"));
+        QCOMPARE(guessCategories(QStringLiteral("WinMerge WinMerge")), QStringLiteral("Development;"));
+        QCOMPARE(guessCategories(QStringLiteral("Electronic Arts EA app")), QStringLiteral("Game;"));
+        QCOMPARE(guessCategories(QStringLiteral("Adobe Digital Editions 4.5")), QStringLiteral("Office;"));
+        QCOMPARE(guessCategories(QStringLiteral("SumatraPDF SumatraPDF")), QStringLiteral("Office;"));
     }
 
     void versionPrefersEnglish()

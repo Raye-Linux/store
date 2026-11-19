@@ -18,3 +18,11 @@ name      = Old Pinball
 state     = blocked
 anticheat = none
 why_en    = It needs a store this system does not have.
+
+[viewer]
+name      = Viewer
+state     = partial
+tested_on = the build machine
+tested_at = 2026-11-19
+why_en    = Opens pictures; printing does not work here.
+why_fr    = Ouvre les images ; l'impression ne marche pas ici.

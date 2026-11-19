@@ -188,6 +188,9 @@ int searchScore(const QString &query, const App &app);
 // Windows support): bytes made with another stamp do not decode.
 QByteArray encodeCatalog(const QList<App> &apps, const Feeds &feeds, const QStringList &windowsOrder, const QString &stamp);
 bool decodeCatalog(const QByteArray &bytes, const QString &stamp, QList<App> &apps, Feeds &feeds, QStringList &windowsOrder);
+// What a reload compares to know nothing changed: a hash of those bytes,
+// not the 25 MB of them.
+QByteArray catalogDigest(const QByteArray &bytes);
 // the stamp of this run
 QString catalogCacheStamp();
 
@@ -284,7 +287,7 @@ private:
     bool m_again = false;           // asked for while it ran: load once more
     bool m_installedBusy = false;
     bool m_installedAgain = false;
-    QByteArray m_shown;             // the cache bytes of what the list shows
+    QByteArray m_shown;             // catalogDigest() of what the list shows
 };
 
 // Search box, category, curated lists and sorting on top of the catalog:

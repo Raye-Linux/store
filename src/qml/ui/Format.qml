@@ -111,6 +111,7 @@ QtObject {
         switch (app ? app.windowsState : "") {
         case "optimized": return i18nc("@info a Windows program checked one by one", "Optimized for Raye")
         case "works": return i18nc("@info a Windows program on the standard settings", "Works on Raye")
+        case "partial": return i18nc("@info a Windows program Raye tried: part of it doesn't work", "Partly works on Raye")
         case "blocked": return i18nc("@info a game whose anti-cheat refuses this system", "Doesn't work on Raye")
         case "native": return i18nc("@info the version made for this system, not the Windows one", "Native app")
         }
@@ -121,13 +122,15 @@ QtObject {
         case "optimized": return Theme.accentText
         case "native": return Theme.success
         case "blocked": return Theme.caution
+        case "partial": return Theme.caution
         }
         return Theme.textSecondary
     }
     function windowsExplained(app) {
         switch (app ? app.windowsState : "") {
-        case "optimized": return i18n("Raye checked this program itself, on a real PC, and runs it with settings made for it.")
+        case "optimized": return i18n("Raye installed and tried this program itself, and runs it with settings made for it.")
         case "works": return i18n("Runs with Raye's standard settings for Windows programs. It hasn't been checked one by one yet.")
+        case "partial": return i18n("Raye tried it: it opens and does most of its job, but not everything works here.")
         case "blocked": return app.windowsAntiCheat
                                ? i18n("Its anti-cheat refuses this system. Raye won't try to get around it: that gets accounts banned.")
                                : i18n("This one can't run on Raye for now, for the reason given with it.")

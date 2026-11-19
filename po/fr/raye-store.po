@@ -1293,6 +1293,11 @@ msgid "Works on Raye"
 msgstr "Fonctionne sur Raye"
 
 #: src/qml/ui/Format.qml
+msgctxt "@info a Windows program Raye tried: part of it doesn't work"
+msgid "Partly works on Raye"
+msgstr "Fonctionne en partie sur Raye"
+
+#: src/qml/ui/Format.qml
 msgctxt "@info a game whose anti-cheat refuses this system"
 msgid "Doesn't work on Raye"
 msgstr "Ne fonctionne pas sur Raye"
@@ -1304,10 +1309,10 @@ msgstr "Application native"
 
 #: src/qml/ui/Format.qml
 msgid ""
-"Raye checked this program itself, on a real PC, and runs it with settings "
-"made for it."
+"Raye installed and tried this program itself, and runs it with settings made "
+"for it."
 msgstr ""
-"Raye a vérifié ce programme lui-même, sur un vrai PC, et le lance avec des "
+"Raye a installé et essayé ce programme lui-même, et le lance avec des "
 "réglages faits pour lui."
 
 #: src/qml/ui/Format.qml
@@ -1317,6 +1322,14 @@ msgid ""
 msgstr ""
 "Se lance avec les réglages standard de Raye pour les programmes Windows. Il "
 "n'a pas encore été vérifié individuellement."
+
+#: src/qml/ui/Format.qml
+msgid ""
+"Raye tried it: it opens and does most of its job, but not everything works "
+"here."
+msgstr ""
+"Raye l'a essayé : il s'ouvre et fait l'essentiel de son travail, mais tout ne "
+"marche pas ici."
 
 #: src/qml/ui/Format.qml
 msgid ""

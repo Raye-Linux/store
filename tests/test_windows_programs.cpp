@@ -68,6 +68,18 @@ private Q_SLOTS:
         QCOMPARE(studio->windowsNote, QStringLiteral("Signing in has not worked here yet."));
     }
 
+    // tried by Raye: it opens, but part of it does not work here
+    void partial()
+    {
+        const WindowsListing l = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), false, true);
+        const App *viewer = byId(l.apps, QStringLiteral("windows.viewer"));
+        QVERIFY(viewer);
+        QCOMPARE(viewer->windowsState, QStringLiteral("partial"));
+        QCOMPARE(viewer->windowsNote, QStringLiteral("Opens pictures; printing does not work here."));
+        const WindowsListing fr = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), true, true);
+        QCOMPARE(byId(fr.apps, QStringLiteral("windows.viewer"))->windowsNote, QStringLiteral("Ouvre les images ; l'impression ne marche pas ici."));
+    }
+
     void refusedEntries()
     {
         const WindowsListing l = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), false, true);
@@ -109,6 +121,30 @@ private Q_SLOTS:
                  live->downloadPage);
     }
 
+    // a maker that ships its setup inside a zip: listed only when the list
+    // also pins the setup inside it
+    void zippedSetup()
+    {
+        const QByteArray sha(64, 'a');
+        auto entry = [&](const char *space, const QByteArray &file, const QByteArray &unpack) -> QByteArray {
+            return QByteArray("{\"profile\":\"") + space + "\",\"name\":\"" + space + "\",\"installer\":{"
+                   "\"url\":\"https://example.org/" + file + "\",\"file\":\"" + file + "\",\"size\":300,"
+                   "\"sha256\":\"" + sha + "\"" + (unpack.isEmpty() ? QByteArray() : ",\"unpack\":" + unpack) + "}}";
+        };
+        const QByteArray json = "{\"programs\":["
+            + entry("packed", "Setup_1.zip", "{\"file\":\"Setup_1.exe\",\"size\":400,\"sha256\":\"" + sha + "\"}") + ","
+            + entry("bare", "Setup_2.zip", {}) + ","
+            + entry("odd", "Setup_3.zip", "{\"file\":\"../x.exe\",\"sha256\":\"" + sha + "\"}") + ","
+            + entry("short", "Setup_4.zip", "{\"file\":\"Setup_4.exe\",\"sha256\":\"12\"}") + ","
+            + entry("tar", "Setup_5.tar", "{\"file\":\"Setup_5.exe\",\"sha256\":\"" + sha + "\"}") + "]}";
+        const WindowsListing l = readWindowsListing(json, dir("icons"), {}, dir("profiles"), false, true);
+        const App *packed = byId(l.apps, QStringLiteral("windows.packed"));
+        QVERIFY(packed);
+        QCOMPARE(packed->downloadSize, 300);
+        for (const char *refused : {"windows.bare", "windows.odd", "windows.short", "windows.tar"})
+            QVERIFY2(!byId(l.apps, QLatin1String(refused)), refused);
+    }
+
     void blockedGames()
     {
         const WindowsListing l = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), true, true);
@@ -139,7 +175,8 @@ private Q_SLOTS:
     {
         const WindowsListing l = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), false, true);
         QCOMPARE(l.order, (QStringList{QStringLiteral("windows.winrar"), QStringLiteral("windows.tool"), QStringLiteral("windows.studio"),
-                                       QStringLiteral("windows.live"), QStringLiteral("com.discordapp.Discord")}));
+                                       QStringLiteral("windows.live"), QStringLiteral("windows.viewer"),
+                                       QStringLiteral("com.discordapp.Discord")}));
 
         QList<App> apps = l.apps;
         for (App &a : apps)
@@ -154,7 +191,7 @@ private Q_SLOTS:
         catalog.setWindowsOrder(l.order);
         catalog.setApps(apps);
         QCOMPARE(catalog.windowsPrograms(QStringLiteral("optimized")), QStringList{QStringLiteral("windows.winrar")});
-        QCOMPARE(catalog.windowsPrograms().size(), 5);
+        QCOMPARE(catalog.windowsPrograms().size(), 6);
         QCOMPARE(catalog.windowsPrograms().last(), QStringLiteral("com.discordapp.Discord"));
     }
 

@@ -111,6 +111,16 @@ class TestAlternatives(unittest.TestCase):
         for store in ("Battle.net", "EA app", "Ubisoft Connect"):
             self.assertEqual(found[store][0], "net.lutris.Lutris")
 
+    def test_dj_software_leads_to_mixxx(self):
+        found = {alt["windows"]: alt for alt in alternatives()}
+        for name in ("rekordbox", "Serato DJ", "Virtual DJ", "Traktor"):
+            with self.subTest(name):
+                self.assertEqual(found[name]["apps"][0], "org.mixxx.Mixxx")
+        words = {w.lower() for name in found for w in [name] + found[name].get("words", [])
+                 if found[name]["apps"][0] == "org.mixxx.Mixxx"}
+        for typed in ("rekordbox", "serato", "virtual dj", "virtualdj", "traktor"):
+            self.assertIn(typed, words)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -20,7 +20,7 @@
 struct WindowsTitle {
     QString id;
     QString name;
-    QString state; // works, offline-only, blocked, untested
+    QString state; // works, offline-only, partial, blocked, untested
     QString anticheat;
     QString whyEn;
     QString whyFr;

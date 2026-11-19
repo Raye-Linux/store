@@ -144,6 +144,9 @@ QString windowsStateFor(const WindowsProfile &profile, const QHash<QString, Wind
     // a profile of its own, checked by Raye on a real machine
     if (profile.found && state == QLatin1String("works"))
         return QStringLiteral("optimized");
+    // tried by Raye: it opens, part of it does not work (the note says what)
+    if (state == QLatin1String("partial"))
+        return QStringLiteral("partial");
     return QStringLiteral("works");
 }
 
@@ -168,6 +171,7 @@ WindowsListing readWindowsListing(const QByteArray &json, const QString &iconDir
 {
     static const QRegularExpression sha256(QStringLiteral("^[0-9a-f]{64}$"));
     static const QRegularExpression fileName(QStringLiteral("^[A-Za-z0-9][A-Za-z0-9._+-]*\\.(exe|msi)$"));
+    static const QRegularExpression zipName(QStringLiteral("^[A-Za-z0-9][A-Za-z0-9._+-]*\\.zip$"));
     WindowsListing out;
     QSet<QString> offeredTitles;
     const QJsonArray list = QJsonDocument::fromJson(json).object().value(QStringLiteral("programs")).toArray();
@@ -194,9 +198,15 @@ WindowsListing readWindowsListing(const QByteArray &json, const QString &iconDir
         const bool fromPage = !o.contains(QStringLiteral("installer")) && page.startsWith(QLatin1String("https://"));
         if (!canInstall)
             continue;
+        // a setup shipped in a zip is listed when the setup inside is pinned too
+        const QString file = inst.value(QStringLiteral("file")).toString();
+        const QJsonObject unpack = inst.value(QStringLiteral("unpack")).toObject();
+        const bool fileOk = inst.contains(QStringLiteral("unpack"))
+            ? zipName.match(file).hasMatch() && fileName.match(unpack.value(QStringLiteral("file")).toString()).hasMatch()
+                  && sha256.match(unpack.value(QStringLiteral("sha256")).toString()).hasMatch()
+            : fileName.match(file).hasMatch();
         if (!fromPage && (!url.startsWith(QLatin1String("https://"))
-                          || !sha256.match(inst.value(QStringLiteral("sha256")).toString()).hasMatch()
-                          || !fileName.match(inst.value(QStringLiteral("file")).toString()).hasMatch()))
+                          || !sha256.match(inst.value(QStringLiteral("sha256")).toString()).hasMatch() || !fileOk))
             continue;
         App app;
         app.id = QStringLiteral("windows.") + space;

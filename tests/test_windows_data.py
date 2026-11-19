@@ -47,8 +47,11 @@ def offered(p):
 
 
 def file_of(p):
-    """the name the download carries: the Store's, or the maker's page's"""
-    return p["installer"]["file"] if offered(p) else p["download"]["file"]
+    """the name the setup runs under: the Store's download, the setup it
+    takes out of a zip, or the file the maker's page hands out"""
+    if not offered(p):
+        return p["download"]["file"]
+    return p["installer"].get("unpack", {}).get("file") or p["installer"]["file"]
 
 
 def png_size(path):
@@ -70,7 +73,11 @@ class TestWindowsData(unittest.TestCase):
             with self.subTest(p["profile"]):
                 self.assertTrue(inst["url"].startswith("https://"))
                 self.assertRegex(inst["sha256"], r"^[0-9a-f]{64}$")
-                self.assertRegex(inst["file"], r"^[A-Za-z0-9][A-Za-z0-9._+-]*\.(exe|msi)$")
+                if "unpack" in inst:
+                    self.assertRegex(inst["file"], r"^[A-Za-z0-9][A-Za-z0-9._+-]*\.zip$")
+                    self.assertRegex(inst["unpack"]["sha256"], r"^[0-9a-f]{64}$")
+                    self.assertGreater(inst["unpack"]["size"], 0)
+                self.assertRegex(file_of(p), r"^[A-Za-z0-9][A-Za-z0-9._+-]*\.(exe|msi)$")
                 # the download keeps its maker's name; a space in it becomes "-"
                 name = urllib.parse.unquote(inst["url"].rsplit("/", 1)[1]).replace(" ", "-")
                 self.assertTrue(name.endswith(inst["file"]), name)
@@ -138,6 +145,44 @@ class TestWindowsData(unittest.TestCase):
         self.assertEqual(by["affinity"]["installer"].get("silent", []), [])
         self.assertEqual(by["affinity"]["main"], "Affinity.exe")
         self.assertTrue(by["tiktok-live-studio"]["download"]["page"].startswith("https://www.tiktok.com/"))
+
+    def test_rekordbox(self):
+        p = {p["profile"]: p for p in programs()}["rekordbox"]
+        inst = p["installer"]
+        self.assertTrue(inst["url"].startswith("https://cdn.rekordbox.com/"))
+        self.assertRegex(inst["unpack"]["file"], r"^Install_rekordbox_x64_[0-9_]+\.exe$")
+        self.assertEqual(inst["version"].replace(".", "_"), inst["unpack"]["file"][len("Install_rekordbox_x64_"):-4])
+        # without a language its setup stops on a question, quiet or not
+        self.assertIn("/S", inst["silent"])
+        self.assertTrue(any(w.startswith("/Lang=") for w in inst["silent"]))
+        self.assertEqual(p["main"], "rekordbox.exe")
+        self.assertIn("dj", p["keywords"])
+
+    def test_checked_programs(self):
+        # each of these was installed with its quiet switch and started,
+        # and its title says what was seen, with a date when it is a claim
+        checked = {"faststone", "mp3tag", "winmerge", "sumatrapdf", "digital-editions", "aimp",
+                   "windirstat", "total-commander", "foobar2000", "winamp", "heidisql", "sharex",
+                   "itunes", "ea-app"}
+        by = {p["profile"]: p for p in programs()}
+        for name in sorted(checked):
+            with self.subTest(name):
+                self.assertIn("installer", by.get(name, {}))
+                self.assertTrue(by[name]["installer"].get("silent"))
+        if not TITLES.is_dir():
+            return
+        text = "\n".join(f.read_text(encoding="utf-8") for f in sorted(TITLES.glob("*.titles")))
+        known = profiles()
+        for name in sorted(checked):
+            with self.subTest(name):
+                title = known.get(name, {}).get("title")
+                self.assertEqual(title, name)
+                block = re.search(r"^\[%s\]\n((?:(?!\[).*\n?)*)" % re.escape(title), text, re.M)
+                self.assertTrue(block)
+                state = re.search(r"^state\s*=\s*(\S+)", block.group(1), re.M).group(1)
+                self.assertIn(state, ("works", "partial", "untested"))
+                if state != "untested":
+                    self.assertRegex(block.group(1), r"(?m)^tested_at\s*=\s*\d{4}-\d\d-\d\d$")
 
     def test_no_layer_name(self):
         hits = []

@@ -121,6 +121,41 @@
             }
         },
         {
+            "profile": "rekordbox",
+            "name": "rekordbox",
+            "developer": "AlphaTheta",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://rekordbox.com/",
+            "license_url": "https://rekordbox.com/license-agreement/",
+            "categories": ["Audio", "AudioVideo", "Music"],
+            "keywords": ["dj", "pioneer", "pioneer dj", "mix", "cdj", "playlists"],
+            "icon": "windows/rekordbox.png",
+            "main": "rekordbox.exe",
+            "summary": {
+                "en": "Prepare your tracks and DJ sets",
+                "fr": "Préparez vos morceaux et vos sets de DJ"
+            },
+            "description": {
+                "en": "<p>rekordbox is Pioneer DJ's app for DJs: it sorts and analyzes your music, builds playlists and lets you mix two or more decks.</p><p>You need a free AlphaTheta account to start it; some features need a paid plan. Controllers that need Pioneer's own driver do not work here.</p><p>Mixxx, a free DJ app made for this system, is in the Store too.</p>",
+                "fr": "<p>rekordbox est l'app de Pioneer DJ pour les DJ : elle trie et analyse votre musique, crée des playlists et permet de mixer sur deux platines ou plus.</p><p>Il faut un compte AlphaTheta gratuit pour l'ouvrir ; certaines fonctions demandent un abonnement. Les contrôleurs qui ont besoin du pilote de Pioneer ne marchent pas ici.</p><p>Mixxx, une app de DJ gratuite faite pour ce système, est aussi dans le Store.</p>"
+            },
+            "installer": {
+                "url": "https://cdn.rekordbox.com/files/20261119142457/Install_rekordbox_x64_7_2_20.zip",
+                "file": "Install_rekordbox_x64_7_2_20.zip",
+                "version": "7.2.20",
+                "size": 618730965,
+                "sha256": "851585e74aa85da780a73d4495a226db1f1a99abc7b5554883ee1abcff0ca470",
+                "unpack": {
+                    "file": "Install_rekordbox_x64_7_2_20.exe",
+                    "size": 619009904,
+                    "sha256": "018375aae0ace957afed9505f8d4774d1f68b23b301f0aac89c4f19634cd3ab8"
+                },
+                "silent": ["/S", "/Lang=ENGLISH"],
+                "folder": "Program Files/rekordbox",
+                "installed_size": 1337797397
+            }
+        },
+        {
             "profile": "affinity",
             "name": "Affinity",
             "developer": "Canva",
@@ -197,6 +232,426 @@
                 "version": "0.747",
                 "folder": ["users/{user}/AppData/Local/Roblox/Versions", "Program Files (x86)/Microsoft"],
                 "installed_size": 2047217992
+            }
+        },
+        {
+            "profile": "faststone",
+            "name": "FastStone Image Viewer",
+            "developer": "FastStone Soft",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.faststone.org/FSViewerDetail.htm",
+            "license_url": "https://www.faststone.org/FSViewerDetail.htm",
+            "categories": ["Graphics", "Viewer", "Photography"],
+            "keywords": ["photo", "image", "viewer", "batch", "resize"],
+            "icon": "windows/faststone.png",
+            "main": "FSViewer.exe",
+            "summary": {
+                "en": "Browse, view and batch-edit your photos",
+                "fr": "Parcourez, affichez et retouchez vos photos par lots"
+            },
+            "description": {
+                "en": "<p>A photo browser with thumbnails, a full-screen viewer and quick fixes: crop, red-eye, colors. Its batch tools resize, rename and convert hundreds of pictures at once.</p><p>Free for home use.</p>",
+                "fr": "<p>Un navigateur de photos avec miniatures, une visionneuse plein écran et des retouches rapides : recadrage, yeux rouges, couleurs. Ses outils par lots redimensionnent, renomment et convertissent des centaines d'images d'un coup.</p><p>Gratuit pour un usage personnel.</p>"
+            },
+            "installer": {
+                "url": "https://www.faststone.org/DN/FSViewerSetup85.exe",
+                "file": "FSViewerSetup85.exe",
+                "version": "8.5",
+                "size": 12524744,
+                "sha256": "5679d7b5cbc5bf6e222230eba6f38f52798de830a89de9aaea409ac55f5f6c38",
+                "silent": ["/S"],
+                "folder": "Program Files (x86)/FastStone Image Viewer",
+                "installed_size": 33367712
+            }
+        },
+        {
+            "profile": "mp3tag",
+            "name": "Mp3tag",
+            "developer": "Florian Heidenreich",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.mp3tag.de/en/",
+            "license_url": "https://www.mp3tag.de/en/terms.html",
+            "categories": ["AudioVideo", "Audio"],
+            "keywords": ["mp3", "tags", "id3", "flac", "cover"],
+            "icon": "windows/mp3tag.png",
+            "main": "Mp3tag.exe",
+            "summary": {
+                "en": "Edit the tags and covers of your music files",
+                "fr": "Modifiez les étiquettes et pochettes de vos fichiers audio"
+            },
+            "description": {
+                "en": "<p>Mp3tag fixes titles, artists, albums and covers across a whole music folder, renames files from their tags and fills tags in from online databases. It reads MP3, FLAC, M4A, OGG and more.</p>",
+                "fr": "<p>Mp3tag corrige les titres, artistes, albums et pochettes de tout un dossier de musique, renomme les fichiers d'après leurs étiquettes et les complète depuis des bases en ligne. Il lit les MP3, FLAC, M4A, OGG et d'autres.</p>"
+            },
+            "installer": {
+                "url": "https://download.mp3tag.de/mp3tag-v3.37-x64-setup.exe",
+                "file": "mp3tag-v3.37-x64-setup.exe",
+                "version": "3.37",
+                "size": 6043864,
+                "sha256": "2f4c62a2fcf6a08f9c5aeb2bb3daed80db2a4eaa5999e4331d9f30c832119aee",
+                "silent": ["/S"],
+                "folder": "Program Files/Mp3tag",
+                "installed_size": 28605257
+            }
+        },
+        {
+            "profile": "winmerge",
+            "name": "WinMerge",
+            "developer": "WinMerge developers",
+            "license": "GPL-2.0-or-later",
+            "homepage": "https://winmerge.org/",
+            "license_url": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+            "categories": ["Development", "Utility"],
+            "keywords": ["diff", "compare", "merge", "folders"],
+            "icon": "windows/winmerge.png",
+            "main": "WinMergeU.exe",
+            "summary": {
+                "en": "Compare and merge files and folders",
+                "fr": "Comparez et fusionnez fichiers et dossiers"
+            },
+            "description": {
+                "en": "<p>WinMerge shows two files or folders side by side, highlights what changed and lets you copy changes from one to the other. It also compares images, tables and binary files.</p>",
+                "fr": "<p>WinMerge affiche deux fichiers ou dossiers côte à côte, surligne ce qui a changé et vous laisse copier les changements de l'un à l'autre. Il compare aussi les images, les tableaux et les fichiers binaires.</p>"
+            },
+            "installer": {
+                "url": "https://github.com/WinMerge/winmerge/releases/download/v2.16.60/WinMerge-2.16.60-x64-Setup.exe",
+                "file": "WinMerge-2.16.60-x64-Setup.exe",
+                "version": "2.16.60",
+                "size": 18697696,
+                "sha256": "ed01097f60b63b3e7d58b3036064c40f05504a47c23c231a1081142295815f7f",
+                "silent": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"],
+                "folder": "Program Files/WinMerge",
+                "installed_size": 72465649
+            }
+        },
+        {
+            "profile": "sumatrapdf",
+            "name": "SumatraPDF",
+            "developer": "Krzysztof Kowalczyk",
+            "license": "GPL-3.0-or-later",
+            "homepage": "https://www.sumatrapdfreader.org/",
+            "license_url": "https://www.gnu.org/licenses/gpl-3.0.html",
+            "categories": ["Office", "Viewer"],
+            "keywords": ["pdf", "epub", "ebook", "comic", "reader"],
+            "icon": "windows/sumatrapdf.png",
+            "main": "SumatraPDF.exe",
+            "summary": {
+                "en": "Small, fast reader for PDF, ebooks and comics",
+                "fr": "Lecteur léger et rapide pour PDF, livres et BD"
+            },
+            "description": {
+                "en": "<p>SumatraPDF opens PDF, EPUB, MOBI, CBZ and XPS files in a light window with tabs, and starts in an instant. It reads; it doesn't edit.</p><p>Raye already opens PDFs on its own; take SumatraPDF if you're used to it.</p>",
+                "fr": "<p>SumatraPDF ouvre les PDF, EPUB, MOBI, CBZ et XPS dans une fenêtre légère à onglets, et démarre en un instant. Il lit, il ne modifie pas.</p><p>Raye ouvre déjà les PDF tout seul ; prenez SumatraPDF si vous y êtes habitué.</p>"
+            },
+            "installer": {
+                "url": "https://www.sumatrapdfreader.org/dl/rel/3.6.1/SumatraPDF-3.6.1-64-install.exe",
+                "file": "SumatraPDF-3.6.1-64-install.exe",
+                "version": "3.6.1",
+                "size": 11075960,
+                "sha256": "1eee71cccd2ea6e94d5bcea54ee2f759844da3e1a0ee2f6045035b1d17b94381",
+                "silent": ["-install", "-s"],
+                "folder": "users/{user}/AppData/Local/SumatraPDF",
+                "installed_size": 28795500
+            }
+        },
+        {
+            "profile": "digital-editions",
+            "name": "Adobe Digital Editions",
+            "developer": "Adobe",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.adobe.com/solutions/ebook/digital-editions.html",
+            "license_url": "https://www.adobe.com/legal/terms.html",
+            "categories": ["Office", "Viewer"],
+            "keywords": ["ebook", "epub", "library", "borrow", "drm", "kobo"],
+            "icon": "windows/digital-editions.png",
+            "main": "DigitalEditions.exe",
+            "summary": {
+                "en": "Read and move ebooks from libraries and stores",
+                "fr": "Lisez et transférez les livres des bibliothèques et librairies"
+            },
+            "description": {
+                "en": "<p>The reader many libraries and bookstores ask for: it opens EPUB and PDF books, including the protected ones you borrow or buy, and copies them to an e-reader.</p><p>Protected books need a free Adobe ID, entered once in the app.</p>",
+                "fr": "<p>La liseuse que demandent beaucoup de bibliothèques et de librairies : elle ouvre les livres EPUB et PDF, y compris les livres protégés que vous empruntez ou achetez, et les copie sur une liseuse.</p><p>Les livres protégés demandent un identifiant Adobe gratuit, saisi une fois dans l'app.</p>"
+            },
+            "installer": {
+                "url": "https://adedownload.adobe.com/pub/adobe/digitaleditions/ADE_4.5_Installer.exe",
+                "file": "ADE_4.5_Installer.exe",
+                "version": "4.5.12",
+                "size": 9026256,
+                "sha256": "db40676c6925f64ab79c3d8b7a24be0973b07ef1c14eec6ec8c44f47cfe665b8",
+                "silent": ["/S"],
+                "folder": "Program Files (x86)/Adobe",
+                "installed_size": 22154193
+            }
+        },
+        {
+            "profile": "aimp",
+            "name": "AIMP",
+            "developer": "Artem Izmaylov",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.aimp.ru/",
+            "license_url": "https://www.aimp.ru/?do=eula",
+            "categories": ["AudioVideo", "Audio", "Player"],
+            "keywords": ["music", "player", "playlist", "radio"],
+            "icon": "windows/aimp.png",
+            "main": "AIMP.exe",
+            "summary": {
+                "en": "Music player with a light touch and a strong sound",
+                "fr": "Lecteur de musique léger, au son soigné"
+            },
+            "description": {
+                "en": "<p>AIMP plays almost every audio format, keeps big playlists and libraries, records internet radio and has a 20-band equalizer. Free, with skins to change its look.</p>",
+                "fr": "<p>AIMP lit presque tous les formats audio, gère de grandes listes de lecture et bibliothèques, enregistre la radio en ligne et a un égaliseur à 20 bandes. Gratuit, avec des habillages pour changer son allure.</p>"
+            },
+            "installer": {
+                "url": "https://aimp.ru/files/desktop/builds/aimp_5.40.2731_w64.exe",
+                "file": "aimp_5.40.2731_w64.exe",
+                "version": "5.40",
+                "size": 21989336,
+                "sha256": "715b781bd09e08c059ce0495a3a3f2ba540f35168c95cc1ec928f93340140e4b",
+                "silent": ["/AUTO", "/SILENT"],
+                "folder": "Program Files/AIMP",
+                "installed_size": 79527286
+            }
+        },
+        {
+            "profile": "windirstat",
+            "name": "WinDirStat",
+            "developer": "WinDirStat developers",
+            "license": "GPL-2.0-or-later",
+            "homepage": "https://windirstat.net/",
+            "license_url": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+            "categories": ["Utility", "System"],
+            "keywords": ["disk", "space", "usage", "treemap", "cleanup"],
+            "icon": "windows/windirstat.png",
+            "main": "WinDirStat.exe",
+            "summary": {
+                "en": "See what fills your disk",
+                "fr": "Voyez ce qui remplit votre disque"
+            },
+            "description": {
+                "en": "<p>WinDirStat scans a drive and draws every file as a colored block, so the biggest folders jump out. Click a block to find the file, then delete or move it.</p>",
+                "fr": "<p>WinDirStat analyse un disque et dessine chaque fichier comme un bloc coloré : les plus gros dossiers sautent aux yeux. Cliquez sur un bloc pour trouver le fichier, puis supprimez-le ou déplacez-le.</p>"
+            },
+            "installer": {
+                "url": "https://github.com/windirstat/windirstat/releases/download/release/v2.9.3/WinDirStat-x64.msi",
+                "file": "WinDirStat-x64.msi",
+                "version": "2.9.3",
+                "size": 2486272,
+                "sha256": "96c4c4beb63c7c5ad6b1a206f96560d7a9a2b6063f3cd175a82f392977a9af5d",
+                "silent": ["/qn"],
+                "folder": "Program Files/WinDirStat",
+                "installed_size": 2910384
+            }
+        },
+        {
+            "profile": "total-commander",
+            "name": "Total Commander",
+            "developer": "Christian Ghisler",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.ghisler.com/",
+            "license_url": "https://www.ghisler.com/order.htm",
+            "categories": ["Utility", "FileManager"],
+            "keywords": ["file manager", "two panes", "ftp", "commander"],
+            "icon": "windows/total-commander.png",
+            "main": "TOTALCMD64.exe",
+            "summary": {
+                "en": "Two-pane file manager driven from the keyboard",
+                "fr": "Gestionnaire de fichiers à deux volets, piloté au clavier"
+            },
+            "description": {
+                "en": "<p>Total Commander shows two folders side by side and copies, moves, compares and renames between them, mostly from the keyboard. It opens archives like folders and has a built-in FTP client.</p><p>Shareware: it asks you to buy a license after a month.</p>",
+                "fr": "<p>Total Commander affiche deux dossiers côte à côte et copie, déplace, compare et renomme de l'un à l'autre, surtout au clavier. Il ouvre les archives comme des dossiers et a un client FTP intégré.</p><p>Partagiciel : il vous demande d'acheter une licence au bout d'un mois.</p>"
+            },
+            "installer": {
+                "url": "https://totalcommander.ch/115801/tcmd115801x64.exe",
+                "file": "tcmd115801x64.exe",
+                "version": "11.58",
+                "size": 7474440,
+                "sha256": "e1b86b14d473af6168b7328ea62268cce4b0da8b3a5582baaaf8653927d91f86",
+                "silent": ["/AHMGDU"],
+                "folder": "Program Files/totalcmd",
+                "installed_size": 21828554
+            }
+        },
+        {
+            "profile": "foobar2000",
+            "name": "foobar2000",
+            "developer": "Peter Pawlowski",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.foobar2000.org/",
+            "license_url": "https://www.foobar2000.org/license",
+            "categories": ["AudioVideo", "Audio", "Player"],
+            "keywords": ["music", "player", "flac", "playlist", "tags"],
+            "icon": "windows/foobar2000.png",
+            "main": "foobar2000.exe",
+            "summary": {
+                "en": "Music player you shape the way you like",
+                "fr": "Lecteur de musique que vous façonnez à votre goût"
+            },
+            "description": {
+                "en": "<p>foobar2000 plays every common audio format gaplessly, keeps a fast library and lets you lay out its window, columns and colors yourself. Its components add converters, visualizations and more.</p>",
+                "fr": "<p>foobar2000 lit tous les formats audio courants sans blanc entre les morceaux, tient une bibliothèque rapide et vous laisse composer vous-même sa fenêtre, ses colonnes et ses couleurs. Ses composants ajoutent convertisseurs, visualisations et plus encore.</p>"
+            },
+            "installer": {
+                "url": "https://www.foobar2000.org/downloads/foobar2000-x64_v2.26.3.exe",
+                "file": "foobar2000-x64_v2.26.3.exe",
+                "version": "2.26.3",
+                "size": 7989144,
+                "sha256": "b8a92891013d3af81ee7b51393e85e963dc099e7e4958f8cf392bfa252425183",
+                "silent": ["/S"],
+                "folder": "Program Files/foobar2000",
+                "installed_size": 24396312
+            }
+        },
+        {
+            "profile": "winamp",
+            "name": "Winamp",
+            "developer": "Llama Group",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.winamp.com/",
+            "license_url": "https://www.winamp.com/legal",
+            "categories": ["AudioVideo", "Audio", "Player"],
+            "keywords": ["music", "player", "skins", "playlist", "llama"],
+            "icon": "windows/winamp.png",
+            "main": "winamp.exe",
+            "summary": {
+                "en": "The classic music player, skins and all",
+                "fr": "Le lecteur de musique classique, habillages compris"
+            },
+            "description": {
+                "en": "<p>Winamp plays your music with its media library, playlists and the skins it is known for, from the original look to its modern one.</p>",
+                "fr": "<p>Winamp lit votre musique avec sa médiathèque, ses listes de lecture et les habillages qui l'ont fait connaître, de l'allure d'origine à la plus moderne.</p>"
+            },
+            "installer": {
+                "url": "https://download.winamp.com/winamp/winamp_latest_full.exe",
+                "file": "winamp_latest_full.exe",
+                "version": "5.9.2",
+                "size": 13033208,
+                "sha256": "d064eefc27c71fc8915e5cce8d20f635030f4654d917bc1c7ac3f7ad869181c0",
+                "silent": ["/S"],
+                "folder": "Program Files (x86)/Winamp",
+                "installed_size": 43714429
+            }
+        },
+        {
+            "profile": "heidisql",
+            "name": "HeidiSQL",
+            "developer": "Ansgar Becker",
+            "license": "GPL-2.0-or-later",
+            "homepage": "https://www.heidisql.com/",
+            "license_url": "https://www.gnu.org/licenses/old-licenses/gpl-2.0.html",
+            "categories": ["Development", "Database"],
+            "keywords": ["sql", "mysql", "mariadb", "postgresql", "sqlite", "database"],
+            "icon": "windows/heidisql.png",
+            "main": "heidisql.exe",
+            "summary": {
+                "en": "Browse and edit MySQL, PostgreSQL and SQLite databases",
+                "fr": "Parcourez et modifiez vos bases MySQL, PostgreSQL et SQLite"
+            },
+            "description": {
+                "en": "<p>HeidiSQL connects to MariaDB, MySQL, PostgreSQL, SQL Server and SQLite, shows tables in a grid you can edit, and runs your queries with syntax colors. It exports to SQL, CSV and more.</p>",
+                "fr": "<p>HeidiSQL se connecte à MariaDB, MySQL, PostgreSQL, SQL Server et SQLite, affiche les tables dans une grille modifiable et exécute vos requêtes avec coloration. Il exporte en SQL, CSV et d'autres formats.</p>"
+            },
+            "installer": {
+                "url": "https://github.com/HeidiSQL/HeidiSQL/releases/download/v12.22/HeidiSQL_12.22.0.7382_Setup.exe",
+                "file": "HeidiSQL_12.22.0.7382_Setup.exe",
+                "version": "12.22",
+                "size": 17885848,
+                "sha256": "468055814dcedc057821f2692d28cfdde181332265240538b9acb320cae49904",
+                "silent": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"],
+                "folder": "Program Files/HeidiSQL",
+                "installed_size": 86450534
+            }
+        },
+        {
+            "profile": "sharex",
+            "name": "ShareX",
+            "developer": "ShareX Team",
+            "license": "GPL-3.0-or-later",
+            "homepage": "https://getsharex.com/",
+            "license_url": "https://www.gnu.org/licenses/gpl-3.0.html",
+            "categories": ["Graphics", "Utility"],
+            "keywords": ["screenshot", "capture", "screen", "upload", "annotate"],
+            "icon": "windows/sharex.png",
+            "main": "ShareX.exe",
+            "summary": {
+                "en": "Screenshots, annotations and quick uploads",
+                "fr": "Captures d'écran, annotations et envois rapides"
+            },
+            "description": {
+                "en": "<p>ShareX captures the whole screen, a window or a region, lets you draw on it, and can upload it and copy the link in one go. Its workflows chain those steps on a single key.</p><p>Raye has its own screenshot tool; ShareX is here for its workflows.</p>",
+                "fr": "<p>ShareX capture l'écran entier, une fenêtre ou une zone, vous laisse dessiner dessus, et peut l'envoyer en ligne et copier le lien d'un seul coup. Ses enchaînements regroupent ces étapes sur une seule touche.</p><p>Raye a son propre outil de capture ; ShareX est là pour ses enchaînements.</p>"
+            },
+            "installer": {
+                "url": "https://github.com/ShareX/ShareX/releases/download/v22.4.0/ShareX-22.4.0-setup-x64.exe",
+                "file": "ShareX-22.4.0-setup-x64.exe",
+                "version": "22.4.0",
+                "size": 145391368,
+                "sha256": "5fac6ee58600976586d706f164b0f8a992fff7679bf2724a1f678c4a63894a8e",
+                "silent": ["/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-"],
+                "folder": "Program Files/ShareX",
+                "installed_size": 513805209
+            }
+        },
+        {
+            "profile": "itunes",
+            "name": "iTunes",
+            "developer": "Apple",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.apple.com/itunes/",
+            "license_url": "https://www.apple.com/legal/sla/",
+            "categories": ["AudioVideo", "Audio", "Player"],
+            "keywords": ["music", "apple", "library", "podcasts", "itunes"],
+            "icon": "windows/itunes.png",
+            "main": "iTunes.exe",
+            "summary": {
+                "en": "Your iTunes music library and purchases",
+                "fr": "Votre bibliothèque musicale et vos achats iTunes"
+            },
+            "description": {
+                "en": "<p>iTunes plays and organizes your music library, with your playlists and the music you bought from Apple.</p><p>It can't sync or back up an iPhone or iPad here: that needs a driver from Apple that Raye can't load.</p>",
+                "fr": "<p>iTunes lit et range votre bibliothèque musicale, avec vos listes de lecture et la musique achetée chez Apple.</p><p>Il ne peut pas synchroniser ni sauvegarder un iPhone ou un iPad ici : cela demande un pilote d'Apple que Raye ne peut pas charger.</p>"
+            },
+            "installer": {
+                "url": "https://secure-appldnld.apple.com/itunes12/142-28289-20261026-6acff6c8-72eb-4045-84eb-fd35239ac645/iTunes64Setup.exe",
+                "file": "iTunes64Setup.exe",
+                "version": "12.13.12",
+                "size": 202558432,
+                "sha256": "221a24203f6182b7dc0e18055b1e9338a0c3c992c7fefe6b3be0460caf29db4d",
+                "silent": ["/quiet"],
+                "folder": "Program Files/iTunes",
+                "installed_size": 433763691
+            }
+        },
+        {
+            "profile": "ea-app",
+            "name": "EA app",
+            "developer": "Electronic Arts",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.ea.com/ea-app",
+            "license_url": "https://tos.ea.com/legalapp/WEBTERMS/US/en/PC/",
+            "categories": ["Game"],
+            "keywords": ["ea", "origin", "launcher", "games", "fifa", "sims"],
+            "icon": "windows/ea-app.png",
+            "main": "EADesktop.exe",
+            "summary": {
+                "en": "EA's launcher for its PC games",
+                "fr": "Le lanceur d'EA pour ses jeux PC"
+            },
+            "description": {
+                "en": "<p>The EA app signs you in to your EA account, downloads your EA games and keeps them up to date. EA games bought on Steam play through Steam instead.</p><p>Some EA games use an anti-cheat that refuses this system; the Store says so on their own pages.</p>",
+                "fr": "<p>L'app EA vous connecte à votre compte EA, télécharge vos jeux EA et les tient à jour. Les jeux EA achetés sur Steam se jouent plutôt par Steam.</p><p>Certains jeux EA ont un anti-triche qui refuse ce système ; le Store le dit sur leurs propres pages.</p>"
+            },
+            "installer": {
+                "url": "https://origin-a.akamaihd.net/EA-Desktop-Client-Download/installer-releases/EAappInstaller.exe",
+                "file": "EAappInstaller.exe",
+                "version": "13.832",
+                "size": 2141216,
+                "sha256": "e403aaae8099ad8cd37db0219a0cb964e0589306929315d9f5c5c5f24b7eb7b2",
+                "silent": ["/quiet"],
+                "folder": "Program Files/Electronic Arts",
+                "installed_size": 645098473
             }
         },
         {

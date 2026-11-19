@@ -14,6 +14,8 @@
   "installer": {"url": "https://example.org/x.exe", "file": "../x.exe", "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b"}},
  {"profile": "live", "name": "Live Thing", "developer": "Live Co", "summary": "Goes live",
   "download": {"page": "https://example.org/live/download", "file": "live_thing_downloader.exe"}},
+ {"profile": "viewer", "name": "Viewer", "summary": "Shows pictures",
+  "installer": {"url": "https://example.org/viewer.exe", "file": "viewer-setup.exe", "sha256": "8ff0daf3ed564cc743c0e23ff2e253997ffc74460f9673f0b6dd037b2db4ce7b"}},
  {"profile": "liveplain", "name": "Live Plain", "summary": "Page over http", "download": {"page": "http://example.org/live", "file": "live_plain.exe"}},
  {"profile": "discord", "name": "Discord", "native": "com.discordapp.Discord"}
 ]}

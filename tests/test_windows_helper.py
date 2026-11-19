@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 import unittest
 import urllib.request
+import zipfile
 
 HELPER = pathlib.Path(__file__).resolve().parent.parent / "src" / "raye-store-windows"
 loader = importlib.machinery.SourceFileLoader("raye_store_windows", str(HELPER))
@@ -47,6 +48,18 @@ class FakeOpener:
 def program(sha=GOOD, size=len(PAYLOAD), file="winrar-x64-723.exe"):
     return {"profile": "winrar", "name": "WinRAR",
             "installer": {"url": "https://example.org/" + file, "file": file, "size": size, "sha256": sha}}
+
+
+def zipped(members, inner="Install_tool_1_0.exe", payload=PAYLOAD):
+    """a maker's zip around its setup, and the list entry for it"""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        for name, data in members.items():
+            z.writestr(name, data)
+    data = buf.getvalue()
+    p = program(sha=hashlib.sha256(data).hexdigest(), size=len(data), file="Install_tool_1_0.zip")
+    p["installer"]["unpack"] = {"file": inner, "size": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
+    return p, data
 
 
 class Runner:
@@ -306,6 +319,48 @@ class TestWindowsHelper(unittest.TestCase):
         self.assertEqual(rsw.sharpen_icons(program, found, icons=str(icons)), [])
         # without a main program named, nothing is touched
         self.assertEqual(rsw.sharpen_icons({"icon": str(picture)}, found, icons=str(icons)), [])
+
+    def test_zipped_setup_runs_under_its_own_name(self):
+        p, data = zipped({"Install_tool_1_0.exe": PAYLOAD, "readme.txt": b"hi"})
+        run = Runner()
+        with Quiet():
+            rc = rsw.install("winrar", p, run=run, popen=run.popen, opener=FakeOpener(data))
+        self.assertEqual(rc, 0)
+        self.assertEqual(run.seen_file, ("Install_tool_1_0.exe", PAYLOAD))
+        left = [f for _, _, fs in os.walk(self.tmp.name) for f in fs]
+        self.assertEqual(left, [])
+
+    def test_zipped_setup_must_match_the_list(self):
+        cases = (
+            {"Install_tool_1_0.exe": PAYLOAD + b"!"},          # another setup inside
+            {"readme.txt": PAYLOAD},                          # not there at all
+            {"sub/Install_tool_1_0.exe": PAYLOAD},             # only in a folder
+        )
+        for members in cases:
+            p, data = zipped(members)
+            run = Runner()
+            with self.subTest(list(members)), Quiet(), self.assertRaises(ValueError):
+                rsw.install("winrar", p, run=run, popen=run.popen, opener=FakeOpener(data))
+            self.assertEqual(run.calls, [])
+        left = [f for _, _, fs in os.walk(self.tmp.name) for f in fs]
+        self.assertEqual(left, [])
+
+    def test_zip_entries_in_the_list(self):
+        path = os.path.join(self.tmp.name, "w.json")
+        p, _ = zipped({})
+        with open(path, "w") as f:
+            json.dump({"programs": [p]}, f)
+        self.assertEqual(rsw.entry_for("winrar", path)["installer"]["unpack"]["file"], "Install_tool_1_0.exe")
+        for change in ({"unpack": None}, {"unpack": {"file": "../x.exe", "sha256": "a" * 64}},
+                       {"unpack": {"file": "x.exe", "sha256": "12"}}, {"unpack": {"file": "x.zip", "sha256": "a" * 64}}):
+            q = json.loads(json.dumps(p))
+            q["installer"].update(change)
+            if q["installer"]["unpack"] is None:
+                del q["installer"]["unpack"]
+            with open(path, "w") as f:
+                json.dump({"programs": [q]}, f)
+            with self.subTest(change), self.assertRaises(ValueError):
+                rsw.entry_for("winrar", path)
 
     def test_bad_arguments(self):
         self.assertEqual(rsw.main(["x", "install", "winrar"]), 2)

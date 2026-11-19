@@ -92,6 +92,11 @@ private Q_SLOTS:
         QCOMPARE(order, QStringList{QStringLiteral("w1")});
         // the same list makes the same bytes: that is how a reload sees nothing changed
         QCOMPARE(encodeCatalog(apps, back, order, QStringLiteral("s")), bytes);
+        // the Store keeps a short digest of them, not the whole list twice
+        QCOMPARE(catalogDigest(encodeCatalog(apps, back, order, QStringLiteral("s"))), catalogDigest(bytes));
+        QVERIFY(catalogDigest(bytes).size() <= 32);
+        apps.first().summary = QStringLiteral("changed");
+        QVERIFY(catalogDigest(encodeCatalog(apps, back, order, QStringLiteral("s"))) != catalogDigest(bytes));
 
         // another language or version, or a cut file, is not used
         QVERIFY(!decodeCatalog(bytes, QStringLiteral("other"), apps, back, order));

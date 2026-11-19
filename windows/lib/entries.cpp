@@ -160,8 +160,10 @@ QString guessCategories(const QString &folderAndName)
         // music software before the rest: "Image-Line" would read as graphics
         {"\\b(fl studio|image-line|ableton|cubase|reaper|bitwig|studio one|daw)\\b", "AudioVideo;Audio;"},
         {"\\b(live studio|streamlabs|obs studio)\\b", "AudioVideo;Video;"},
-        {"\\b(games?|steam|epic|gog|ubisoft|battle\\.?net|riot|launcher|play)\\b", "Game;"},
-        {"\\b(office|word|excel|powerpoint|outlook|writer|calc)\\b", "Office;"},
+        {"\\b(foobar2000|winamp|aimp|itunes|mp3tag)\\b", "AudioVideo;Audio;"},
+        {"\\b(heidisql|winmerge)\\b", "Development;"},
+        {"\\b(games?|steam|epic|gog|ubisoft|battle\\.?net|riot|launcher|play|electronic arts|ea app)\\b", "Game;"},
+        {"\\b(office|word|excel|powerpoint|outlook|writer|calc|digital editions|sumatrapdf)\\b", "Office;"},
         {"\\b(affinity|photo|paint|image|draw|design|graphics?|3d|cad)\\b", "Graphics;"},
         {"\\b(music|audio|video|player|media|sound|radio|dj)\\b", "AudioVideo;"},
         {"\\b(code|ide|sdk|developer|compiler|git|editor)\\b", "Development;"},

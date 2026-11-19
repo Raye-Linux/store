@@ -5,9 +5,19 @@ Source: https://github.com/Raye-Linux/store
 Files: data/icons/windows/winrar.png data/icons/windows/7-zip.png
  data/icons/windows/notepad-plus-plus.png data/icons/windows/fl-studio.png
  data/icons/windows/roblox-studio.png data/icons/windows/affinity.png
- data/icons/windows/tiktok-live-studio.png
+ data/icons/windows/tiktok-live-studio.png data/icons/windows/rekordbox.png
+ data/icons/windows/faststone.png data/icons/windows/mp3tag.png
+ data/icons/windows/winmerge.png data/icons/windows/sumatrapdf.png
+ data/icons/windows/digital-editions.png data/icons/windows/aimp.png
+ data/icons/windows/windirstat.png data/icons/windows/total-commander.png
+ data/icons/windows/foobar2000.png data/icons/windows/winamp.png
+ data/icons/windows/heidisql.png data/icons/windows/sharex.png
+ data/icons/windows/itunes.png data/icons/windows/ea-app.png
 Copyright: their makers (win.rar GmbH, Igor Pavlov, Don Ho, Image-Line,
- Roblox Corporation, Canva, TikTok)
+ Roblox Corporation, Canva, TikTok, AlphaTheta, FastStone Soft, Florian
+ Heidenreich, the WinMerge and WinDirStat developers, Krzysztof Kowalczyk,
+ Adobe, Artem Izmaylov, Christian Ghisler, Peter Pawlowski, Llama Group,
+ Ansgar Becker, the ShareX Team, Apple, Electronic Arts)
 License: other
  Each program's own icon, taken from its official installer or website,
  shown only to name that program in the Store. The names and icons are

@@ -37,6 +37,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+import zipfile
 
 CATALOG = os.environ.get("RAYE_STORE_WINDOWS_DATA") or "/usr/share/raye-store/windows-programs.json"
 RUNNER = os.environ.get("RAYE_RUN_WINDOWS") or "raye-run-windows"
@@ -44,6 +45,8 @@ TOOL = os.environ.get("RAYE_WINDOWS_TOOL") or "raye-windows"
 REF = re.compile(r"^windows:([a-z0-9][a-z0-9-]*)$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
 FILE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*\.(exe|msi)$")
+# a maker that ships its setup in a zip: the setup inside is pinned too
+ZIP = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*\.zip$")
 # a switch the way setups take them: /S, /VERYSILENT, -silent, /qn
 SWITCH = re.compile(r"^[/-][A-Za-z][A-Za-z0-9_-]*(=[A-Za-z0-9._-]+)?$")
 # a folder under drive_c, {user} standing for the user's own
@@ -75,7 +78,11 @@ def entry_for(space, path=CATALOG):
             raise ValueError("%s has no installer to download" % space)
         if not SHA256.match(str(inst.get("sha256", ""))):
             raise ValueError("the list has no SHA-256 for %s" % space)
-        if not FILE.match(str(inst.get("file", ""))):
+        unpack = inst.get("unpack")
+        if ZIP.match(str(inst.get("file", ""))) and isinstance(unpack, dict):
+            if not FILE.match(str(unpack.get("file", ""))) or not SHA256.match(str(unpack.get("sha256", ""))):
+                raise ValueError("the list has no setup to take out of the zip for %s" % space)
+        elif unpack is not None or not FILE.match(str(inst.get("file", ""))):
             raise ValueError("the list has no file name for %s" % space)
         silent = inst.get("silent", [])
         if not isinstance(silent, list) or not all(isinstance(w, str) and SWITCH.match(w) for w in silent):
@@ -177,6 +184,40 @@ def download(installer, dest, opener=None, report=say, watch=None):
         raise
 
 
+def unpack(archive, wanted, dest):
+    """Takes the setup the list names out of the maker's zip into dest, or
+    raises; only that one file, under that exact name, with its SHA-256."""
+    declared = int(wanted.get("size") or 0)
+    limit = declared if declared > 0 else MAX_SIZE
+    digest = hashlib.sha256()
+    fd, tmp = tempfile.mkstemp(dir=os.path.dirname(dest), suffix=".part")
+    try:
+        with zipfile.ZipFile(archive) as z, os.fdopen(fd, "wb") as out:
+            try:
+                info = z.getinfo(wanted["file"])
+            except KeyError:
+                raise ValueError("the zip does not hold %s" % wanted["file"]) from None
+            if info.file_size > limit:
+                raise ValueError("the setup in the zip is bigger than the list says")
+            size = 0
+            with z.open(info) as src:
+                while chunk := src.read(1 << 16):
+                    size += len(chunk)
+                    if size > limit:
+                        raise ValueError("the setup in the zip is bigger than the list says")
+                    digest.update(chunk)
+                    out.write(chunk)
+        if digest.hexdigest() != wanted["sha256"]:
+            raise ValueError("the setup in the zip does not match the SHA-256 in the list")
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, dest)
+    except (zipfile.BadZipFile, zipfile.LargeZipFile) as e:
+        raise ValueError("the zip cannot be read: %s" % e) from None
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+
+
 def programs_in(space, run=subprocess.run):
     out = run([TOOL, "list", space, "--json"], capture_output=True, text=True, stdin=subprocess.DEVNULL)
     if out.returncode != 0:
@@ -272,6 +313,10 @@ def install(space, program, run=subprocess.run, opener=None, watch=None, popen=s
         # and with it the space, from that name
         setup = os.path.join(work, inst["file"])
         download(inst, setup, opener=opener, watch=watch)
+        if inst.get("unpack"):
+            archive, setup = setup, os.path.join(work, inst["unpack"]["file"])
+            unpack(archive, inst["unpack"], setup)
+            os.unlink(archive)
         silent = inst.get("silent") or []
         argv = [RUNNER, setup]
         env = dict(os.environ)
