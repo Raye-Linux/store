@@ -80,6 +80,35 @@ private Q_SLOTS:
         QCOMPARE(none.natives.value(QStringLiteral("com.discordapp.Discord")), QStringLiteral("Discord"));
     }
 
+    // a setup its maker gives only to signed-in accounts: the Store sends
+    // people to the maker's page, and the runner takes the file from there
+    void downloadPage()
+    {
+        const WindowsListing l = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), false, true);
+        const App *live = byId(l.apps, QStringLiteral("windows.live"));
+        QVERIFY(live);
+        QCOMPARE(live->downloadPage, QStringLiteral("https://example.org/live/download"));
+        QCOMPARE(live->ref, QStringLiteral("windows:live"));
+        QCOMPARE(live->windowsState, QStringLiteral("works"));
+        QCOMPARE(live->downloadSize, 0);
+        QVERIFY(byId(l.apps, QStringLiteral("windows.winrar"))->downloadPage.isEmpty());
+        QVERIFY(!byId(l.apps, QStringLiteral("windows.liveplain")));
+        const WindowsListing none = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), false, false);
+        QVERIFY(!byId(none.apps, QStringLiteral("windows.live")));
+        // kept by the cache, and handed to the page with the other links
+        QList<App> back;
+        Feeds feeds;
+        QStringList order;
+        QVERIFY(decodeCatalog(encodeCatalog({*live}, {}, {}, QStringLiteral("s")), QStringLiteral("s"), back, feeds, order));
+        QCOMPARE(back.value(0).downloadPage, live->downloadPage);
+        App shown = *live;
+        shown.listed = true;
+        Catalog catalog;
+        catalog.setApps({shown});
+        QCOMPARE(catalog.index(0, 0).data(Catalog::UrlsRole).toMap().value(QStringLiteral("download")).toString(),
+                 live->downloadPage);
+    }
+
     void blockedGames()
     {
         const WindowsListing l = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), true, true);
@@ -110,7 +139,7 @@ private Q_SLOTS:
     {
         const WindowsListing l = readWindowsListing(programs(), dir("icons"), titles(), dir("profiles"), false, true);
         QCOMPARE(l.order, (QStringList{QStringLiteral("windows.winrar"), QStringLiteral("windows.tool"), QStringLiteral("windows.studio"),
-                                       QStringLiteral("com.discordapp.Discord")}));
+                                       QStringLiteral("windows.live"), QStringLiteral("com.discordapp.Discord")}));
 
         QList<App> apps = l.apps;
         for (App &a : apps)
@@ -125,7 +154,7 @@ private Q_SLOTS:
         catalog.setWindowsOrder(l.order);
         catalog.setApps(apps);
         QCOMPARE(catalog.windowsPrograms(QStringLiteral("optimized")), QStringList{QStringLiteral("windows.winrar")});
-        QCOMPARE(catalog.windowsPrograms().size(), 4);
+        QCOMPARE(catalog.windowsPrograms().size(), 5);
         QCOMPARE(catalog.windowsPrograms().last(), QStringLiteral("com.discordapp.Discord"));
     }
 

@@ -11,6 +11,9 @@ raye-store (1.0~beta1) resolute; urgency=medium
   * The mouse wheel scrolls the Store by a Windows-sized step.
   * Read and write app reviews in the Store, through the Open Desktop
     Ratings Service; app cards show how many ratings an app has.
+  * Affinity and TikTok LIVE Studio in the Store; apps whose maker hands
+    out the installer only after sign-in open the maker's page with clear
+    steps.
 
  -- techoraye <190692880+techoraye@users.noreply.github.com>  Thu, 19 Nov 2026 06:00:00 +0000
 

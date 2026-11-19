@@ -12,6 +12,7 @@ import re
 import struct
 import sys
 import unittest
+import urllib.parse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 DATA = ROOT / "data" / "windows-programs.json"
@@ -40,6 +41,16 @@ def profiles():
     return out
 
 
+def offered(p):
+    """an entry the Store installs from the maker's installer"""
+    return "installer" in p
+
+
+def file_of(p):
+    """the name the download carries: the Store's, or the maker's page's"""
+    return p["installer"]["file"] if offered(p) else p["download"]["file"]
+
+
 def png_size(path):
     head = path.read_bytes()[:24]
     return struct.unpack(">II", head[16:24])
@@ -53,16 +64,29 @@ class TestWindowsData(unittest.TestCase):
 
     def test_installers_are_pinned(self):
         for p in programs():
-            if "native" in p:
+            if not offered(p):
                 continue
             inst = p["installer"]
             with self.subTest(p["profile"]):
                 self.assertTrue(inst["url"].startswith("https://"))
                 self.assertRegex(inst["sha256"], r"^[0-9a-f]{64}$")
                 self.assertRegex(inst["file"], r"^[A-Za-z0-9][A-Za-z0-9._+-]*\.(exe|msi)$")
-                # the runner names the space after the file: the download keeps it
-                self.assertTrue(inst["url"].endswith(inst["file"]))
+                # the download keeps its maker's name; a space in it becomes "-"
+                name = urllib.parse.unquote(inst["url"].rsplit("/", 1)[1]).replace(" ", "-")
+                self.assertTrue(name.endswith(inst["file"]), name)
                 self.assertGreater(inst["size"], 0)
+
+    def test_download_pages(self):
+        # a maker who gives its setup only to signed-in accounts: the Store
+        # opens its page, and the file it hands out must still find its profile
+        pages = [p for p in programs() if "download" in p]
+        self.assertTrue(pages)
+        for p in pages:
+            with self.subTest(p["profile"]):
+                self.assertNotIn("installer", p)
+                self.assertTrue(p["download"]["page"].startswith("https://"))
+                self.assertRegex(p["download"]["file"], r"^[A-Za-z0-9][A-Za-z0-9._+-]*\.(exe|msi)$")
+                self.assertTrue(p.get("developer"))
 
     def test_both_languages(self):
         for p in programs():
@@ -91,7 +115,7 @@ class TestWindowsData(unittest.TestCase):
         # that gets the Store's picture when its own icons are small
         switch = re.compile(r"^[/-][A-Za-z][A-Za-z0-9_-]*(=[A-Za-z0-9._-]+)?$")
         for p in programs():
-            if "native" in p:
+            if not offered(p):
                 continue
             inst = p["installer"]
             with self.subTest(p["profile"]):
@@ -106,6 +130,14 @@ class TestWindowsData(unittest.TestCase):
                 self.assertGreater(inst["installed_size"], 0)
                 self.assertRegex(p["main"], r"^[A-Za-z0-9][A-Za-z0-9 ._+-]*\.exe$")
                 self.assertGreaterEqual(min(png_size(ICONS / p["icon"])), 128)
+
+    def test_creative_programs(self):
+        by = {p["profile"]: p for p in programs()}
+        self.assertIn("installer", by["fl-studio"])
+        # Affinity's setup has no quiet switch: it opens its own window
+        self.assertEqual(by["affinity"]["installer"].get("silent", []), [])
+        self.assertEqual(by["affinity"]["main"], "Affinity.exe")
+        self.assertTrue(by["tiktok-live-studio"]["download"]["page"].startswith("https://www.tiktok.com/"))
 
     def test_no_layer_name(self):
         hits = []
@@ -131,7 +163,7 @@ class TestWindowsData(unittest.TestCase):
                     self.assertEqual(p["native"], prof.get("native"))
                     continue
                 self.assertFalse(prof.get("native"), "a program with a native version is offered as Windows")
-                lower = p["installer"]["file"].lower()
+                lower = file_of(p).lower()
                 # the runner takes the first profile, by file name, whose pattern fits
                 first = next((name for name in order
                               if any(fnmatch.fnmatchcase(lower, pat) for pat in known[name].get("match", "").split())), None)

@@ -4,9 +4,10 @@ Source: https://github.com/Raye-Linux/store
 
 Files: data/icons/windows/winrar.png data/icons/windows/7-zip.png
  data/icons/windows/notepad-plus-plus.png data/icons/windows/fl-studio.png
- data/icons/windows/roblox-studio.png
+ data/icons/windows/roblox-studio.png data/icons/windows/affinity.png
+ data/icons/windows/tiktok-live-studio.png
 Copyright: their makers (win.rar GmbH, Igor Pavlov, Don Ho, Image-Line,
- Roblox Corporation)
+ Roblox Corporation, Canva, TikTok)
 License: other
  Each program's own icon, taken from its official installer or website,
  shown only to name that program in the Store. The names and icons are

@@ -121,6 +121,57 @@
             }
         },
         {
+            "profile": "affinity",
+            "name": "Affinity",
+            "developer": "Canva",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.affinity.studio/",
+            "license_url": "https://www.canva.com/policies/terms-of-use/",
+            "categories": ["Graphics", "2DGraphics", "RasterGraphics", "VectorGraphics", "Publishing"],
+            "keywords": ["photo", "design", "vector", "layout", "publisher", "designer", "canva"],
+            "icon": "windows/affinity.png",
+            "main": "Affinity.exe",
+            "summary": {
+                "en": "Photo editing, vector design and page layout in one app",
+                "fr": "Retouche photo, dessin vectoriel et mise en page dans une seule app"
+            },
+            "description": {
+                "en": "<p>Affinity brings Photo, Designer and Publisher together: edit pictures, draw vector art and lay out pages in the same document.</p><p>Affinity is free with a Canva account. Its setup opens its own window: follow it to the end. Signing in to Canva does not work here yet, so the Canva features are missing.</p>",
+                "fr": "<p>Affinity réunit Photo, Designer et Publisher : retouchez des images, dessinez en vectoriel et mettez en page dans le même document.</p><p>Affinity est gratuit avec un compte Canva. Son installation ouvre sa propre fenêtre : suivez-la jusqu'au bout. La connexion à Canva ne marche pas encore ici, donc les fonctions Canva manquent.</p>"
+            },
+            "installer": {
+                "url": "https://downloads.affinity.studio/Affinity%20x64.exe",
+                "file": "Affinity-x64.exe",
+                "version": "3.3.3",
+                "size": 973064776,
+                "sha256": "618f7b18f99176e5492a2253af7524b7fd702dfe6044403ca227cd44fc76336d",
+                "folder": "Program Files/Affinity",
+                "installed_size": 1920348371
+            }
+        },
+        {
+            "profile": "tiktok-live-studio",
+            "name": "TikTok LIVE Studio",
+            "developer": "TikTok",
+            "license": "LicenseRef-proprietary",
+            "homepage": "https://www.tiktok.com/studio/download",
+            "categories": ["AudioVideo", "Video"],
+            "keywords": ["live", "stream", "streaming", "tiktok"],
+            "icon": "windows/tiktok-live-studio.png",
+            "summary": {
+                "en": "Go live on TikTok from your PC",
+                "fr": "Passez en direct sur TikTok depuis votre PC"
+            },
+            "description": {
+                "en": "<p>TikTok's own app for going live from a computer: scenes with your camera, your screen and games, alerts and chat.</p><p>You need a TikTok account that is allowed to go live.</p>",
+                "fr": "<p>L'app de TikTok pour passer en direct depuis un ordinateur : des scènes avec votre caméra, votre écran et vos jeux, les alertes et le chat.</p><p>Il faut un compte TikTok autorisé à passer en direct.</p>"
+            },
+            "download": {
+                "page": "https://www.tiktok.com/studio/download",
+                "file": "tiktok_live_studio_downloader.exe"
+            }
+        },
+        {
             "profile": "roblox-studio",
             "name": "Roblox Studio",
             "developer": "Roblox Corporation",

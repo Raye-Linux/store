@@ -11,6 +11,8 @@ Button {
     readonly property var job: installer.revision >= 0 && app && app.ref ? installer.job(app.ref) : ({ state: 0 })
     readonly property bool working: job.state >= 1 && job.state <= 4
     property bool installed: false
+    // a Windows program its maker hands out on its own page
+    readonly property string makerPage: app && app.source === "windows" && app.urls ? app.urls.download || "" : ""
     function refresh() { installed = app && app.ref ? catalog.isInstalled(app.ref) : false }
     onAppChanged: refresh()
     Connections {
@@ -30,8 +32,9 @@ Button {
                      : job.state === 2 && job.percent >= 0 ? i18nc("@info:status percent done", "%1%", job.percent)
                      : i18nc("@info:status", "Installing…"))
         : installed ? i18nc("@action:button start the app", "Open")
+        : makerPage !== "" ? i18nc("@action:button %1 is the maker, like TikTok", "Get it from %1", app.developer)
         : i18nc("@action:button", "Install")
     Accessible.name: app ? (installed ? i18nc("@action:button", "Open %1", app.name)
                                       : i18nc("@action:button", "Install %1", app.name)) : text
-    onClicked: installed ? installer.open(app) : installer.get(app)
+    onClicked: installed ? installer.open(app) : makerPage !== "" ? Qt.openUrlExternally(makerPage) : installer.get(app)
 }

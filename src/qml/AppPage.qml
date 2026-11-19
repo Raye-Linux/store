@@ -22,6 +22,8 @@ Flickable {
     property bool installed: false
     // a game that can't run here: nothing to install
     readonly property bool blocked: app !== null && app !== undefined && app.windowsState === "blocked"
+    // a Windows program its maker hands out on its own page, after sign-in
+    readonly property string makerPage: app && app.source === "windows" && app.urls ? app.urls.download || "" : ""
     // the system's own copy: it opens from here, Raye Update looks after it
     property bool systemCopy: false
     function refresh() {
@@ -584,10 +586,19 @@ Flickable {
                     id: installButton
                     Layout.fillWidth: true
                     implicitHeight: 40
-                    visible: !page.installed && !page.blocked
+                    visible: !page.installed && !page.blocked && page.makerPage === ""
                     accent: true
                     text: i18n("Install")
                     onClicked: installer.get(page.app)
+                }
+                // a setup its maker gives only to signed-in accounts
+                Button {
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    visible: !page.installed && !page.blocked && page.makerPage !== ""
+                    accent: true
+                    text: i18nc("@action:button %1 is the maker, like TikTok", "Get it from %1", page.app ? page.app.developer : "")
+                    onClicked: Qt.openUrlExternally(page.makerPage)
                 }
                 Button {
                     Layout.fillWidth: true
@@ -620,6 +631,15 @@ Flickable {
                 wrapMode: Text.Wrap
                 onLinkActivated: link => Qt.openUrlExternally(link)
                 HoverHandler { cursorShape: parent.hoveredLink !== "" ? Qt.PointingHandCursor : Qt.ArrowCursor }
+            }
+            Text {
+                Layout.fillWidth: true
+                visible: page.makerPage !== "" && !page.installed && !page.blocked
+                text: i18n("%1 gives its installer only to people signed in to their account. Sign in on the page that opens, download it, then open the file from your Downloads folder: Raye sets it up from there.",
+                           page.app ? page.app.developer : "")
+                font: Theme.caption
+                color: Theme.textSecondary
+                wrapMode: Text.Wrap
             }
             // Microsoft Store style: the bar under the app, with Cancel
             JobStatus {
@@ -728,6 +748,7 @@ Flickable {
                 Layout.topMargin: Theme.s2
                 visible: !page.blocked
                 text: page.systemCopy ? i18n("Installed on this PC · system")
+                      : page.makerPage !== "" ? i18n("Its maker's own installer, from its maker's page, not checked by Raye")
                       : page.app && page.app.source === "windows"
                         ? (page.app.downloadSize > 0 ? i18n("Its maker's own installer, checked by Raye · %1", Format.size(page.app.downloadSize))
                                                      : i18n("Its maker's own installer, checked by Raye"))

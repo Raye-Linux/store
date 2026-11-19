@@ -187,6 +187,8 @@ private Q_SLOTS:
         QCOMPARE(guessCategories(QStringLiteral("Ableton Live 12 Suite")), QStringLiteral("AudioVideo;Audio;"));
         QCOMPARE(guessCategories(QStringLiteral("Paint.NET paint.net")), QStringLiteral("Graphics;"));
         QCOMPARE(guessCategories(QStringLiteral("Roblox Roblox Studio")), QStringLiteral("Utility;"));
+        QCOMPARE(guessCategories(QStringLiteral("Affinity Affinity")), QStringLiteral("Graphics;"));
+        QCOMPARE(guessCategories(QStringLiteral("TikTok LIVE Studio TikTok LIVE Studio")), QStringLiteral("AudioVideo;Video;"));
     }
 
     void versionPrefersEnglish()

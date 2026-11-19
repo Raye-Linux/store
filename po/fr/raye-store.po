@@ -1832,3 +1832,21 @@ msgstr "Votre avis contient un mot interdit. Modifiez-le, puis réessayez."
 #: src/qml/ui/ReviewDialog.qml
 msgid "Your review is public. It's sent to the Open Desktop Ratings Service, which other app stores show too, with the app's version and your language. Apart from the name above, Raye sends nothing that says who you are."
 msgstr "Votre avis est public. Il est envoyé à l'Open Desktop Ratings Service, que d'autres boutiques d'applications affichent aussi, avec la version de l'application et votre langue. À part le nom ci-dessus, Raye n'envoie rien qui dise qui vous êtes."
+
+#: src/qml/AppPage.qml src/qml/ui/GetButton.qml
+msgctxt "@action:button %1 is the maker, like TikTok"
+msgid "Get it from %1"
+msgstr "L'obtenir chez %1"
+
+#: src/qml/AppPage.qml
+msgid "%1 gives its installer only to people signed in to their account. Sign in on the page that opens, download it, then open the file from your Downloads folder: Raye sets it up from there."
+msgstr "%1 ne donne son installateur qu'aux personnes connectées à leur compte. Connectez-vous sur la page qui s'ouvre, téléchargez-le, puis ouvrez le fichier depuis votre dossier Téléchargements : Raye s'occupe du reste."
+
+#: src/qml/AppPage.qml
+msgid "Its maker's own installer, from its maker's page, not checked by Raye"
+msgstr "L'installateur de son éditeur, depuis la page de l'éditeur, non vérifié par Raye"
+
+#: src/qml/ui/Format.qml
+msgctxt "@info where the app comes from"
+msgid "Its maker's page"
+msgstr "La page de son éditeur"

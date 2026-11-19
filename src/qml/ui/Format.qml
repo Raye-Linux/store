@@ -101,6 +101,7 @@ QtObject {
             return ""
         return app.source === "flatpak" ? i18nc("@info where the app comes from", "Flathub")
              : app.source === "raye" ? i18nc("@info where the app comes from", "Raye, from its makers")
+             : app.source === "windows" && app.urls && app.urls.download ? i18nc("@info where the app comes from", "Its maker's page")
              : app.source === "windows" ? i18nc("@info where the app comes from", "Its maker's installer, checked by Raye")
              : i18nc("@info where the app comes from", "Raye Linux packages")
     }

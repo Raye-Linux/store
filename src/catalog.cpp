@@ -323,7 +323,7 @@ bool canInstallWindowsPrograms()
 }
 
 // bump when App, Feeds or what fills them changes
-constexpr int kCacheFormat = 3;
+constexpr int kCacheFormat = 4;
 
 Loaded loadCached()
 {
@@ -483,7 +483,7 @@ static Stream &appFields(Stream &s, A &a)
     s % a.id % a.name % a.summary % a.description % a.icon % a.iconSize % a.screenshot % a.screenshots % a.videos
       % a.developer % a.license % a.source % a.ref % a.categories % a.keywords % a.releases % a.minimumAge
       % a.brandLight % a.brandDark % a.homepage % a.help % a.donate % a.bugtracker % a.licenseUrl % a.desktopId % a.isFree
-      % a.preview % a.noDisplay % a.windowsState % a.windowsNote % a.windowsAntiCheat % a.downloadSize
+      % a.preview % a.noDisplay % a.windowsState % a.windowsNote % a.windowsAntiCheat % a.downloadSize % a.downloadPage
       % a.verified % a.popularity % a.trending % a.updatedAt % a.addedAt % a.ratingAvg % a.ratingCount
       % a.ratingHistogram % a.listed % a.replaces;
     return s;
@@ -1284,7 +1284,7 @@ QVariant Catalog::data(const QModelIndex &index, int role) const
     case UrlsRole:
         return QVariantMap{{QStringLiteral("homepage"), a.homepage}, {QStringLiteral("help"), a.help},
                            {QStringLiteral("donate"), a.donate}, {QStringLiteral("bugtracker"), a.bugtracker},
-                           {QStringLiteral("license"), a.licenseUrl}};
+                           {QStringLiteral("license"), a.licenseUrl}, {QStringLiteral("download"), a.downloadPage}};
     case DesktopIdRole: return a.desktopId;
     case IsFreeRole: return a.isFree;
     case VerifiedRole: return a.verified;

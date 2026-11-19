@@ -188,9 +188,15 @@ WindowsListing readWindowsListing(const QByteArray &json, const QString &iconDir
         }
         const QJsonObject inst = o.value(QStringLiteral("installer")).toObject();
         const QString url = inst.value(QStringLiteral("url")).toString();
-        if (!canInstall || !url.startsWith(QLatin1String("https://"))
-            || !sha256.match(inst.value(QStringLiteral("sha256")).toString()).hasMatch()
-            || !fileName.match(inst.value(QStringLiteral("file")).toString()).hasMatch())
+        // a maker that hands its setup only to signed-in accounts: the
+        // person gets it from that page, and the runner knows the file
+        const QString page = o.value(QStringLiteral("download")).toObject().value(QStringLiteral("page")).toString();
+        const bool fromPage = !o.contains(QStringLiteral("installer")) && page.startsWith(QLatin1String("https://"));
+        if (!canInstall)
+            continue;
+        if (!fromPage && (!url.startsWith(QLatin1String("https://"))
+                          || !sha256.match(inst.value(QStringLiteral("sha256")).toString()).hasMatch()
+                          || !fileName.match(inst.value(QStringLiteral("file")).toString()).hasMatch()))
             continue;
         App app;
         app.id = QStringLiteral("windows.") + space;
@@ -214,6 +220,8 @@ WindowsListing readWindowsListing(const QByteArray &json, const QString &iconDir
         app.source = QStringLiteral("windows");
         app.ref = windowsRef(space);
         app.downloadSize = inst.value(QStringLiteral("size")).toInteger();
+        if (fromPage)
+            app.downloadPage = page;
         const QString version = inst.value(QStringLiteral("version")).toString();
         if (!version.isEmpty())
             app.releases.append(Release{version, {}, {}});

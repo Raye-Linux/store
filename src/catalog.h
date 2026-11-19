@@ -65,6 +65,7 @@ struct App {
     QString windowsNote;     // what Raye says about it, in the user's language
     bool windowsAntiCheat = false; // blocked by an anti-cheat, not by something missing
     qint64 downloadSize = 0; // the installer's size, when known
+    QString downloadPage;    // the maker's page that hands out its setup, when the Store can't
     // Windows programs with no version here that this app stands in for
     // (alternatives.h)
     QStringList replaces;

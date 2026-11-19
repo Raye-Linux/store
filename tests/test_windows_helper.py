@@ -163,11 +163,15 @@ class TestWindowsHelper(unittest.TestCase):
         with open(path, "w") as f:
             json.dump({"programs": [program(), {"profile": "steam", "name": "Steam", "native": "com.valvesoftware.Steam"},
                                     dict(program(file="../x.exe"), profile="bad"),
-                                    dict(program(sha="12"), profile="short")]}, f)
+                                    dict(program(sha="12"), profile="short"),
+                                    {"profile": "live", "name": "Live", "download": {"page": "https://example.org/get", "file": "live.exe"}}]}, f)
         self.assertEqual(rsw.entry_for("winrar", path)["name"], "WinRAR")
         for space, error in (("steam", ValueError), ("bad", ValueError), ("short", ValueError), ("bash", LookupError)):
             with self.assertRaises(error):
                 rsw.entry_for(space, path)
+        # its maker hands the setup out on its own page: nothing to download here
+        with self.assertRaisesRegex(ValueError, "maker's own page"):
+            rsw.entry_for("live", path)
 
     def test_progress_lines(self):
         lines = []

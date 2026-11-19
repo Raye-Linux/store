@@ -69,6 +69,8 @@ def entry_for(space, path=CATALOG):
         if p.get("profile") != space:
             continue
         inst = p.get("installer") or {}
+        if not inst and p.get("download"):
+            raise ValueError("%s is downloaded from its maker's own page, not by the Store" % space)
         if not str(inst.get("url", "")).startswith("https://"):
             raise ValueError("%s has no installer to download" % space)
         if not SHA256.match(str(inst.get("sha256", ""))):
