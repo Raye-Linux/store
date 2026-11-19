@@ -1573,3 +1573,262 @@ msgstr "Autres lanceurs de jeux"
 msgctxt "@title row of apps"
 msgid "Coming from Windows?"
 msgstr "Vous venez de Windows ?"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@action:button report a review"
+msgid "Report"
+msgstr "Signaler"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@action:button send a review"
+msgid "Post"
+msgstr "Publier"
+
+#: src/qml/ui/ReviewCard.qml src/qml/AppPage.qml
+msgctxt "@action:button the person's own review"
+msgid "Delete"
+msgstr "Supprimer"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@action:button while a review is sent"
+msgid "Posting…"
+msgstr "Publication…"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@action:button"
+msgid "Helpful, one person said so"
+msgid_plural "Helpful, %1 people said so"
+msgstr[0] "Utile, une personne l'a dit"
+msgstr[1] "Utile, %1 personnes l'ont dit"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@action:button"
+msgid "Not helpful, one person said so"
+msgid_plural "Not helpful, %1 people said so"
+msgstr[0] "Pas utile, une personne l'a dit"
+msgstr[1] "Pas utile, %1 personnes l'ont dit"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@action:button"
+msgid "Read more"
+msgstr "Lire la suite"
+
+#: src/qml/AppPage.qml
+msgctxt "@action:button"
+msgid "Show more reviews"
+msgstr "Afficher plus d'avis"
+
+#: src/qml/AppPage.qml
+msgctxt "@action:button"
+msgid "Write a review"
+msgstr "Écrire un avis"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@info a label over the person's own review"
+msgid "Your review"
+msgstr "Votre avis"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info a rating of 1 star out of 5"
+msgid "Hated it"
+msgstr "Je déteste"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info a rating of 2 stars out of 5"
+msgid "Didn't like it"
+msgstr "Je n'aime pas"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info a rating of 3 stars out of 5"
+msgid "It's OK"
+msgstr "Pas mal"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info a rating of 4 stars out of 5"
+msgid "Liked it"
+msgstr "J'aime bien"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info a rating of 5 stars out of 5"
+msgid "Loved it"
+msgstr "J'adore"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info a rating of none yet"
+msgid "Pick a rating"
+msgstr "Choisissez une note"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@info a review posted without a name"
+msgid "Anonymous"
+msgstr "Anonyme"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@info a review written in another language than the reader's"
+msgid "Other language"
+msgstr "Autre langue"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@info after voting on a review"
+msgid "Thanks for your feedback"
+msgstr "Merci pour votre avis"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info characters used out of the most allowed"
+msgid "%1/%2"
+msgstr "%1/%2"
+
+#: src/qml/ui/AppCard.qml
+msgctxt "@info how many ratings, on an app card: (1.2K)"
+msgid "(%1)"
+msgstr "(%1)"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info:placeholder"
+msgid "Anonymous"
+msgstr "Anonyme"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info:placeholder"
+msgid "Sum it up in a few words"
+msgstr "Résumez en quelques mots"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@info:placeholder"
+msgid "What did you like? What could be better?"
+msgstr "Qu'avez-vous aimé ? Qu'est-ce qui pourrait être mieux ?"
+
+#: src/qml/ui/StarPicker.qml
+msgctxt "@info"
+msgid "No stars yet"
+msgstr "Aucune étoile pour l'instant"
+
+#: src/qml/ui/StarPicker.qml
+msgctxt "@info"
+msgid "One star"
+msgid_plural "%1 stars"
+msgstr[0] "Une étoile"
+msgstr[1] "%1 étoiles"
+
+#: src/qml/ui/ReviewCard.qml
+msgctxt "@info"
+msgid "Was this helpful?"
+msgstr "Cet avis vous a-t-il été utile ?"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@label:textbox"
+msgid "Name shown with your review"
+msgstr "Nom affiché avec votre avis"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@label:textbox"
+msgid "Title"
+msgstr "Titre"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@label:textbox"
+msgid "Your review"
+msgstr "Votre avis"
+
+#: src/qml/ui/StarPicker.qml
+msgctxt "@label"
+msgid "Rating"
+msgstr "Note"
+
+#: src/qml/ui/ReviewDialog.qml
+msgctxt "@title:window"
+msgid "Rate and review"
+msgstr "Noter et donner un avis"
+
+#: src/qml/AppPage.qml
+msgctxt "@title"
+msgid "Ratings and reviews"
+msgstr "Notes et avis"
+
+#: src/reviews.cpp
+msgid "Choose how many stars you give it."
+msgstr "Choisissez combien d'étoiles vous lui donnez."
+
+#: src/qml/AppPage.qml
+msgid "Delete your review?"
+msgstr "Supprimer votre avis ?"
+
+#: src/reviews.cpp
+msgid "Give your review a title."
+msgstr "Donnez un titre à votre avis."
+
+#: src/qml/AppPage.qml
+msgid "Install the app to review it."
+msgstr "Installez l'application pour donner votre avis."
+
+#: src/qml/AppPage.qml
+msgid "It will be removed from the Open Desktop Ratings Service. You can write a new one after."
+msgstr "Il sera retiré de l'Open Desktop Ratings Service. Vous pourrez en écrire un nouveau ensuite."
+
+#: src/qml/ui/ReviewDialog.qml
+msgid "Leave it empty to post without a name."
+msgstr "Laissez vide pour publier sans nom."
+
+#: src/reviews.cpp
+msgid "Leave out the < sign. Reviews are plain text."
+msgstr "Retirez le signe <. Les avis sont du texte simple."
+
+#: src/qml/AppPage.qml
+msgid "No reviews yet."
+msgstr "Aucun avis pour l'instant."
+
+#: src/qml/AppPage.qml
+msgid "No reviews yet. Be the first to write one."
+msgstr "Aucun avis pour l'instant. Écrivez le premier."
+
+#: src/qml/AppPage.qml
+msgid "Report it if it's rude, spam, or not about the app. The review is hidden for you now, and for everyone once several people report it."
+msgstr "Signalez-le s'il est grossier, s'il s'agit de spam ou s'il ne parle pas de l'application. L'avis est masqué pour vous dès maintenant, et pour tout le monde quand plusieurs personnes le signalent."
+
+#: src/qml/AppPage.qml
+msgid "Report this review?"
+msgstr "Signaler cet avis ?"
+
+#: src/reviews.cpp
+msgid "Reviews can't be written on this PC."
+msgstr "Impossible d'écrire un avis sur ce PC."
+
+#: src/reviews.cpp
+msgid "Reviews from this PC have been turned off by the Open Desktop Ratings Service."
+msgstr "L'Open Desktop Ratings Service a désactivé les avis venant de ce PC."
+
+#: src/reviews.cpp
+msgid "The review service didn't accept your review. Try again later."
+msgstr "Le service d'avis n'a pas accepté votre avis. Réessayez plus tard."
+
+#: src/reviews.cpp
+msgid "The title can be one character at most."
+msgid_plural "The title can be %1 characters at most."
+msgstr[0] "Le titre peut compter un caractère au plus."
+msgstr[1] "Le titre peut compter %1 caractères au plus."
+
+#: src/reviews.cpp
+msgid "We couldn't send your review. Check your internet connection and try again."
+msgstr "Nous n'avons pas pu envoyer votre avis. Vérifiez votre connexion Internet, puis réessayez."
+
+#: src/reviews.cpp
+msgid "Write a few words about the app."
+msgstr "Écrivez quelques mots sur l'application."
+
+#: src/reviews.cpp
+msgid "You've already reviewed this app."
+msgstr "Vous avez déjà donné votre avis sur cette application."
+
+#: src/reviews.cpp
+msgid "Your review can be one character at most."
+msgid_plural "Your review can be %1 characters at most."
+msgstr[0] "Votre avis peut compter un caractère au plus."
+msgstr[1] "Votre avis peut compter %1 caractères au plus."
+
+#: src/reviews.cpp
+msgid "Your review has a word that isn't allowed. Change it and try again."
+msgstr "Votre avis contient un mot interdit. Modifiez-le, puis réessayez."
+
+#: src/qml/ui/ReviewDialog.qml
+msgid "Your review is public. It's sent to the Open Desktop Ratings Service, which other app stores show too, with the app's version and your language. Apart from the name above, Raye sends nothing that says who you are."
+msgstr "Votre avis est public. Il est envoyé à l'Open Desktop Ratings Service, que d'autres boutiques d'applications affichent aussi, avec la version de l'application et votre langue. À part le nom ci-dessus, Raye n'envoie rien qui dise qui vous êtes."

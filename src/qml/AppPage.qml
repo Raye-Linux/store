@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // One app: what it is, who makes it, the button that matters, then its
-// screenshots, description, ratings, what's new and the details.
+// screenshots, description, ratings and reviews, what's new and the details.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
@@ -33,6 +33,7 @@ Flickable {
         refresh()
         contentY = 0
         descriptionExpanded = false
+        reviewsShown = 6
         reachedEnd = false
         if (app && !installed)
             Qt.callLater(() => installButton.forceActiveFocus())
@@ -49,6 +50,20 @@ Flickable {
     }
 
     property bool descriptionExpanded: false
+    // a Windows program is Raye's own listing: nobody reviews it on the
+    // ratings service
+    readonly property bool reviewable: app !== null && app !== undefined && app.source !== "windows" && (app.appId || "") !== ""
+    property int reviewsShown: 6
+    Reviews {
+        id: reviews
+        appId: page.reviewable ? page.app.appId : ""
+        version: page.release ? page.release.version || "" : ""
+    }
+    // the service's own count for this app when it answered, the feed's otherwise
+    readonly property var rated: reviews.rating && reviews.rating.count > 0 ? reviews.rating
+        : app && app.ratingCount > 0 ? ({ average: app.ratingAvg, count: app.ratingCount, histogram: app.ratingHistogram }) : null
+    // under ten ratings a number says nothing yet
+    readonly property bool hasRated: rated !== null && rated.count >= 10 && rated.average > 0
     // "People also like" is made once the page scrolls near its end
     property bool reachedEnd: false
     onContentYChanged: if (!reachedEnd && contentY + height > contentHeight - 900) reachedEnd = true
@@ -245,32 +260,34 @@ Flickable {
                 }
             }
 
-            // ratings
+            // ratings and reviews
             ColumnLayout {
+                id: ratingsBlock
                 Layout.fillWidth: true
                 spacing: Theme.s4
                 visible: page.app !== null
-                SectionHeader { Layout.fillWidth: true; title: i18nc("@title", "Ratings") }
+                SectionHeader { Layout.fillWidth: true; title: i18nc("@title", "Ratings and reviews") }
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: Theme.s8
-                    visible: Format.hasRating(page.app)
                     ColumnLayout {
+                        visible: page.hasRated
                         spacing: Theme.s1
                         Text {
-                            text: Format.hasRating(page.app) ? Format.rating(page.app.ratingAvg) : ""
+                            text: page.hasRated ? Format.rating(page.rated.average) : ""
                             font: Theme.titleLarge
                             color: Theme.text
                         }
-                        Stars { value: Format.hasRating(page.app) ? page.app.ratingAvg : 0; size: 16 }
+                        Stars { value: page.hasRated ? page.rated.average : 0; size: 16 }
                         Text {
                             Layout.topMargin: Theme.s2
-                            text: page.app ? i18ncp("@info", "One rating", "%1 ratings", page.app.ratingCount) : ""
+                            text: page.hasRated ? i18ncp("@info", "One rating", "%1 ratings", page.rated.count) : ""
                             font: Theme.caption
                             color: Theme.textSecondary
                         }
                     }
                     ColumnLayout {
+                        visible: page.hasRated
                         Layout.fillWidth: true
                         Layout.maximumWidth: 420
                         spacing: Theme.s2
@@ -279,7 +296,7 @@ Flickable {
                             delegate: RowLayout {
                                 required property int index
                                 readonly property int stars: 5 - index
-                                readonly property var histogram: page.app && page.app.ratingHistogram ? page.app.ratingHistogram : [0, 0, 0, 0, 0]
+                                readonly property var histogram: page.rated && page.rated.histogram ? page.rated.histogram : [0, 0, 0, 0, 0]
                                 readonly property int most: Math.max(1, Math.max.apply(null, histogram))
                                 Layout.fillWidth: true
                                 spacing: Theme.s3
@@ -305,10 +322,74 @@ Flickable {
                             }
                         }
                     }
+                    Text {
+                        visible: !page.hasRated
+                        Layout.fillWidth: true
+                        text: i18n("Not enough people have rated this app yet.")
+                        font: Theme.body
+                        color: Theme.textSecondary
+                        wrapMode: Text.Wrap
+                    }
+                    Item { Layout.fillWidth: page.hasRated }
+                    ColumnLayout {
+                        Layout.alignment: Qt.AlignTop
+                        visible: page.reviewable && reviews.available && reviews.canWrite
+                        spacing: Theme.s2
+                        Button {
+                            Layout.alignment: Qt.AlignRight
+                            visible: page.installed
+                            glyph: "star-outline"
+                            text: i18nc("@action:button", "Write a review")
+                            onClicked: reviewDialog.ask(page.app)
+                        }
+                        Text {
+                            Layout.alignment: Qt.AlignRight
+                            visible: !page.installed
+                            text: i18n("Install the app to review it.")
+                            font: Theme.caption
+                            color: Theme.textTertiary
+                        }
+                    }
+                }
+
+                ReviewCard {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Theme.s2
+                    visible: page.reviewable && reviews.mine.id !== undefined
+                    review: reviews.mine
+                    own: true
+                    onDeleteRequested: confirmDelete.open()
+                }
+
+                GridLayout {
+                    Layout.fillWidth: true
+                    visible: page.reviewable && reviews.reviews.length > 0
+                    columns: width >= 720 ? 2 : 1
+                    columnSpacing: Theme.s4
+                    rowSpacing: Theme.s4
+                    Repeater {
+                        model: page.reviewable ? reviews.reviews.slice(0, page.reviewsShown) : []
+                        delegate: ReviewCard {
+                            required property var modelData
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            Layout.preferredWidth: 1
+                            review: modelData
+                            canVote: reviews.userHash !== ""
+                            onHelpful: useful => reviews.vote(modelData.id, useful)
+                            onReportRequested: confirmReport.ask(modelData.id)
+                        }
+                    }
+                }
+                Button {
+                    visible: page.reviewable && reviews.reviews.length > page.reviewsShown
+                    text: i18nc("@action:button", "Show more reviews")
+                    onClicked: page.reviewsShown += 6
                 }
                 Text {
-                    visible: !Format.hasRating(page.app)
-                    text: i18n("Not enough people have rated this app yet.")
+                    visible: page.reviewable && reviews.available && reviews.reviews.length === 0 && reviews.mine.id === undefined
+                    text: page.installed && reviews.canWrite ? i18n("No reviews yet. Be the first to write one.")
+                                                             : i18n("No reviews yet.")
                     font: Theme.body
                     color: Theme.textSecondary
                 }
@@ -460,13 +541,13 @@ Flickable {
                 Layout.topMargin: Theme.s2
                 spacing: Theme.s3
                 Stars {
-                    visible: Format.hasRating(page.app)
-                    value: visible ? page.app.ratingAvg : 0
+                    visible: page.hasRated
+                    value: visible ? page.rated.average : 0
                     size: 13
                 }
                 Text {
-                    text: Format.hasRating(page.app)
-                          ? i18nc("@info 4.5 · 1.2K ratings", "%1 · %2 ratings", Format.rating(page.app.ratingAvg), Format.count(page.app.ratingCount))
+                    text: page.hasRated
+                          ? i18nc("@info 4.5 · 1.2K ratings", "%1 · %2 ratings", Format.rating(page.rated.average), Format.count(page.rated.count))
                           : i18n("Not enough ratings yet")
                     font: Theme.caption
                     color: Theme.textSecondary
@@ -693,6 +774,24 @@ Flickable {
     }
 
     UninstallDialog { id: confirmUninstall }
+
+    ReviewDialog { id: reviewDialog; reviews: reviews }
+    ConfirmDialog {
+        id: confirmReport
+        property var reviewId: 0
+        function ask(id) { reviewId = id; open() }
+        title: i18n("Report this review?")
+        message: i18n("Report it if it's rude, spam, or not about the app. The review is hidden for you now, and for everyone once several people report it.")
+        actionText: i18nc("@action:button report a review", "Report")
+        onAccepted: reviews.report(reviewId)
+    }
+    ConfirmDialog {
+        id: confirmDelete
+        title: i18n("Delete your review?")
+        message: i18n("It will be removed from the Open Desktop Ratings Service. You can write a new one after.")
+        actionText: i18nc("@action:button the person's own review", "Delete")
+        onAccepted: reviews.removeMine()
+    }
 
     component Tag: Rectangle {
         property alias text: tagLabel.text

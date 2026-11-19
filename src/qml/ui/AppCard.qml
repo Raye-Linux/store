@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // One app in a row or a grid: its icon on a tile tinted with the app's
-// own colour, the name, what kind of app it is, its rating, and Free,
-// Installed or Preview. Lifts a little under the pointer.
+// own colour, the name, what kind of app it is, its rating and how many
+// gave one, and Free, Installed or Preview. Lifts a little under the pointer.
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Templates as T
@@ -134,6 +134,13 @@ T.AbstractButton {
                     text: visible ? Format.rating(card.app.ratingAvg) : ""
                     font: Theme.caption
                     color: Theme.text
+                }
+                Text {
+                    visible: Format.hasRating(card.app)
+                    text: visible ? i18nc("@info how many ratings, on an app card: (1.2K)", "(%1)", Format.count(card.app.ratingCount)) : ""
+                    font: Theme.caption
+                    color: Theme.textTertiary
+                    Accessible.name: visible ? i18ncp("@info", "One rating", "%1 ratings", card.app.ratingCount) : ""
                 }
                 Item { Layout.fillWidth: true }
                 Text {

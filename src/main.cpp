@@ -6,6 +6,7 @@
 #include "catalog.h"
 #include "debfile.h"
 #include "installer.h"
+#include "reviews.h"
 #include "searchsuggestions.h"
 #include "storesettings.h"
 #include "uninstallcommand.h"
@@ -106,6 +107,7 @@ int main(int argc, char *argv[])
     // the pages make their own rows: a category, a feed, a sort order
     qmlRegisterType<CatalogFilter>("org.raye.store.data", 1, 0, "CatalogFilter");
     qmlRegisterType<SearchSuggestions>("org.raye.store.data", 1, 0, "SearchSuggestions");
+    qmlRegisterType<Reviews>("org.raye.store.data", 1, 0, "Reviews");
 
     // used by the build tests: load the interface, report, quit
     if (app.arguments().contains(QStringLiteral("--check-qml"))) {
