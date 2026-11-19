@@ -21,6 +21,7 @@
 #include <AppStreamQt/release.h>
 #include <AppStreamQt/screenshot.h>
 #include <AppStreamQt/video.h>
+#include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFile>
@@ -43,6 +44,9 @@
 #include <algorithm>
 #include <climits>
 #include <utility>
+
+#include <dlfcn.h>
+#include <sys/stat.h>
 
 namespace {
 
@@ -302,6 +306,8 @@ struct Loaded {
     QStringList windowsOrder;
     QByteArray bytes;  // the same, as the cache keeps it (until it is saved)
     QByteArray digest; // catalogDigest(bytes)
+    QByteArray sources; // catalogSourcesFingerprint() it was read from, if known
+    bool unchanged = false; // not read again: the sources are those of the list shown
 };
 
 QString windowsDataFile()
@@ -334,23 +340,25 @@ Loaded loadCached()
     if (!f.open(QIODevice::ReadOnly))
         return out;
     const QByteArray bytes = f.readAll();
-    if (decodeCatalog(bytes, catalogCacheStamp(), out.apps, out.feeds, out.windowsOrder))
+    if (decodeCatalog(bytes, catalogCacheStamp(), out.apps, out.feeds, out.windowsOrder)) {
         out.digest = catalogDigest(bytes);
-    else
+        out.sources = readSourcesNote(f.fileName(), out.digest);
+    } else {
         out = Loaded();
+    }
     return out;
 }
 
-void saveCache(const QByteArray &bytes)
+void saveCache(const QByteArray &bytes, const QByteArray &digest, const QByteArray &sources)
 {
     const QString path = Catalog::cacheFile();
     QDir().mkpath(QFileInfo(path).absolutePath());
     QSaveFile f(path);
-    if (f.open(QIODevice::WriteOnly) && f.write(bytes) == bytes.size())
-        f.commit();
+    if (f.open(QIODevice::WriteOnly) && f.write(bytes) == bytes.size() && f.commit())
+        saveSourcesNote(path, digest, sources);
 }
 
-Loaded loadEverything()
+Loaded loadEverything(const QByteArray &sources)
 {
     AppStream::Pool pool;
     // AppStreamQt declares Flags but not the operators, so build it by hand
@@ -412,7 +420,56 @@ Loaded loadEverything()
     });
     out.bytes = encodeCatalog(out.apps, out.feeds, out.windowsOrder, catalogCacheStamp());
     out.digest = catalogDigest(out.bytes);
+    out.sources = sources;
     return out;
+}
+
+struct Walk {
+    QCryptographicHash hash{QCryptographicHash::Sha256};
+    QSet<QPair<dev_t, ino_t>> folders; // a symlink back up must not loop
+};
+
+void addStat(Walk &w, char kind, const QString &path, const struct stat &st)
+{
+    w.hash.addData(QStringLiteral("%1 %2 %3 %4.%5 %6.%7 %8:%9\n")
+                       .arg(QLatin1Char(kind)).arg(path).arg(qint64(st.st_size))
+                       .arg(qint64(st.st_mtim.tv_sec)).arg(qint64(st.st_mtim.tv_nsec))
+                       .arg(qint64(st.st_ctim.tv_sec)).arg(qint64(st.st_ctim.tv_nsec))
+                       .arg(quint64(st.st_dev)).arg(quint64(st.st_ino))
+                       .toUtf8());
+}
+
+void walk(Walk &w, const QString &path, bool icons, int depth)
+{
+    struct stat st;
+    if (::stat(QFile::encodeName(path).constData(), &st) != 0) {
+        w.hash.addData(QByteArray(QByteArray("- ") + path.toUtf8() + '\n'));
+        return;
+    }
+    if (!S_ISDIR(st.st_mode)) {
+        if (!icons)
+            addStat(w, 'f', path, st);
+        return;
+    }
+    if (depth > 12 || w.folders.contains({st.st_dev, st.st_ino}))
+        return;
+    w.folders.insert({st.st_dev, st.st_ino});
+    // in an icons folder a file only matters by being there, which its
+    // folder's times already say; thousands of icons stay unread
+    if (icons)
+        addStat(w, 'd', path, st);
+    else
+        w.hash.addData(QByteArray(QByteArray("d ") + path.toUtf8() + '\n'));
+    const QDir::Filters filter = icons ? QDir::Dirs | QDir::NoDotAndDotDot : QDir::AllEntries | QDir::NoDotAndDotDot | QDir::System;
+    const QStringList names = QDir(path).entryList(filter, QDir::Name);
+    for (const QString &name : names)
+        walk(w, path + QLatin1Char('/') + name, icons || name == QLatin1String("icons"), depth + 1);
+}
+
+QString libraryOf(const void *symbol)
+{
+    Dl_info info;
+    return dladdr(symbol, &info) && info.dli_fname ? QFile::decodeName(info.dli_fname) : QString();
 }
 
 struct InstalledNow {
@@ -457,6 +514,96 @@ QVariant dateOrNothing(qint64 secs)
 }
 
 } // namespace
+
+QByteArray sourcesFingerprint(const QStringList &trees, const QStringList &folders, const QString &extra)
+{
+    Walk w;
+    w.hash.addData(QByteArray(extra.toUtf8() + '\n'));
+    for (const QString &tree : trees)
+        walk(w, tree, tree.endsWith(QLatin1String("/icons")), 0);
+    for (const QString &folder : folders) {
+        struct stat st;
+        if (::stat(QFile::encodeName(folder).constData(), &st) == 0)
+            addStat(w, 'd', folder, st);
+        else
+            w.hash.addData(QByteArray(QByteArray("- ") + folder.toUtf8() + '\n'));
+    }
+    return w.hash.result();
+}
+
+QByteArray catalogSourcesFingerprint()
+{
+    const QString home = QDir::homePath();
+    const QString flatpakSystem = qEnvironmentVariable("FLATPAK_SYSTEM_DIR", QStringLiteral("/var/lib/flatpak"));
+    const QString flatpakUser = qEnvironmentVariable("FLATPAK_USER_DIR", home + QStringLiteral("/.local/share/flatpak"));
+    QStringList trees{
+        // AppStream's catalogs; /var/cache/*/cache is its own compiled
+        // copy, rewritten by every read, so it stays out
+        QStringLiteral("/usr/share/swcatalog"), QStringLiteral("/var/lib/swcatalog"),
+        QStringLiteral("/var/cache/swcatalog/xml"), QStringLiteral("/var/cache/swcatalog/yaml"),
+        QStringLiteral("/var/cache/swcatalog/icons"), QStringLiteral("/usr/share/app-info"),
+        QStringLiteral("/var/lib/app-info"), QStringLiteral("/var/cache/app-info/xmls"),
+        QStringLiteral("/var/cache/app-info/yaml"), QStringLiteral("/var/cache/app-info/icons"),
+        QStringLiteral("/etc/appstream.conf"), QStringLiteral("/usr/share/appstream/appstream.conf"),
+        QStringLiteral("/etc/os-release"), QStringLiteral("/usr/lib/os-release"),
+        flatpakSystem + QStringLiteral("/appstream"), flatpakUser + QStringLiteral("/appstream"),
+        QStringLiteral("/etc/flatpak/installations.d"),
+        // the Store's own data
+        kShare, qEnvironmentVariable("RAYE_STORE_FEEDS", kFeeds), windowsDataFile(),
+        QFileInfo(windowsDataFile()).absolutePath() + QStringLiteral("/icons"), alternativesFile(), windowsProfileDir(),
+        // this program and the library that reads AppStream
+        QCoreApplication::applicationFilePath(), libraryOf(reinterpret_cast<const void *>(&as_pool_new)),
+    };
+    trees += windowsTitleDirs();
+    for (const QString &conf : QDir(QStringLiteral("/etc/flatpak/installations.d")).entryList({QStringLiteral("*.conf")}, QDir::Files, QDir::Name)) {
+        const QStringList lines = QString::fromUtf8(readSmall(QStringLiteral("/etc/flatpak/installations.d/") + conf)).split(QLatin1Char('\n'));
+        for (const QString &line : lines) {
+            if (line.trimmed().startsWith(QLatin1String("Path=")))
+                trees << line.trimmed().mid(5) + QStringLiteral("/appstream");
+        }
+    }
+    // a launcher's NoDisplay hides an app, a theme icon can make one listed
+    trees += QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation);
+    QStringList folders;
+    for (const QString &dir : QStandardPaths::standardLocations(QStandardPaths::GenericDataLocation)) {
+        for (const char *size : {"128x128", "scalable", "256x256", "96x96", "64x64"})
+            folders << dir + QStringLiteral("/icons/hicolor/") + QLatin1String(size) + QStringLiteral("/apps");
+    }
+    // what names and descriptions come out in, and where things are looked up
+    QStringList extra{catalogCacheStamp(), QLocale().name()};
+    const QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QStringList keys = env.keys();
+    keys.sort();
+    for (const QString &key : std::as_const(keys)) {
+        if (key.startsWith(QLatin1String("LC_")) || key.startsWith(QLatin1String("RAYE_")) || key.startsWith(QLatin1String("XDG_DATA"))
+            || key == QLatin1String("LANG") || key == QLatin1String("LANGUAGE") || key == QLatin1String("HOME"))
+            extra << key + QLatin1Char('=') + env.value(key);
+    }
+    return sourcesFingerprint(trees, folders, extra.join(QLatin1Char('\n')));
+}
+
+void saveSourcesNote(const QString &cacheFile, const QByteArray &digest, const QByteArray &sources)
+{
+    QSaveFile f(cacheFile + QStringLiteral(".sources"));
+    if (sources.isEmpty() || !f.open(QIODevice::WriteOnly)) {
+        QFile::remove(cacheFile + QStringLiteral(".sources"));
+        return;
+    }
+    f.write(QByteArray(digest + sources));
+    f.commit();
+}
+
+QByteArray readSourcesNote(const QString &cacheFile, const QByteArray &digest)
+{
+    QFile f(cacheFile + QStringLiteral(".sources"));
+    if (!f.open(QIODevice::ReadOnly) || f.size() > 256)
+        return {};
+    const QByteArray note = f.readAll();
+    // tied to these exact bytes: a note left by another list says nothing
+    if (digest.isEmpty() || note.size() <= digest.size() || !note.startsWith(digest))
+        return {};
+    return note.mid(digest.size());
+}
 
 QString catalogCacheStamp()
 {
@@ -1034,6 +1181,7 @@ void Catalog::reload()
     // the GUI thread only swaps lists: reading, parsing and comparing all
     // happen on a worker, so the window keeps resizing and painting
     auto show = [this](Loaded loaded) {
+        m_shownSources = std::move(loaded.sources);
         if (!loaded.digest.isEmpty() && loaded.digest == m_shown)
             return; // the same list again: no reset, no rebuilt rows
         m_windowsOrder = std::move(loaded.windowsOrder);
@@ -1049,7 +1197,9 @@ void Catalog::reload()
     auto full = [this, show] {
         auto *watcher = new QFutureWatcher<Loaded>(this);
         connect(watcher, &QFutureWatcher<Loaded>::finished, this, [this, watcher, show] {
-            show(watcher->result());
+            Loaded loaded = watcher->result();
+            if (!loaded.unchanged)
+                show(std::move(loaded));
             watcher->deleteLater();
             m_busy = false;
             m_settled = true;
@@ -1057,9 +1207,17 @@ void Catalog::reload()
             if (std::exchange(m_again, false))
                 reload();
         });
-        watcher->setFuture(QtConcurrent::run([] {
-            Loaded loaded = loadEverything();
-            saveCache(loaded.bytes);
+        // reading AppStream costs a few seconds and a few hundred MB: not
+        // when every file it reads is the one the list shown came from
+        watcher->setFuture(QtConcurrent::run([shownSources = m_shownSources] {
+            const QByteArray sources = catalogSourcesFingerprint();
+            if (!shownSources.isEmpty() && sources == shownSources) {
+                Loaded same;
+                same.unchanged = true;
+                return same;
+            }
+            Loaded loaded = loadEverything(sources);
+            saveCache(loaded.bytes, loaded.digest, loaded.sources);
             loaded.bytes.clear();
             return loaded;
         }));

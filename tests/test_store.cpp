@@ -138,6 +138,124 @@ private Q_SLOTS:
         qunsetenv("RAYE_STORE_FEEDS");
     }
 
+    void fingerprintFollowsTheSources()
+    {
+        QTemporaryDir tmp;
+        const QString tree = tmp.filePath(QStringLiteral("yaml"));
+        const QString icons = tree + QStringLiteral("/icons/64x64");
+        const QString folder = tmp.filePath(QStringLiteral("apps"));
+        QVERIFY(QDir().mkpath(icons) && QDir().mkpath(folder));
+        auto write = [](const QString &path, const QByteArray &bytes) {
+            QFile f(path);
+            QVERIFY(f.open(QIODevice::WriteOnly));
+            f.write(bytes);
+        };
+        write(tree + QStringLiteral("/main.yml"), "aaaa");
+        write(tree + QStringLiteral("/.timestamp"), "");
+        write(icons + QStringLiteral("/one.png"), "png");
+        write(folder + QStringLiteral("/one.png"), "png");
+        const auto fp = [&](const QString &extra = {}) { return sourcesFingerprint({tree}, {folder}, extra); };
+        const QByteArray first = fp();
+        QVERIFY(!first.isEmpty() && first.size() <= 32);
+        QCOMPARE(fp(), first);
+
+        // flatpak's check mark and an icon rewritten in place change nothing
+        write(tree + QStringLiteral("/.timestamp"), "x");
+        write(icons + QStringLiteral("/one.png"), "PNG");
+        write(folder + QStringLiteral("/one.png"), "PNG");
+        QCOMPARE(fp(), first);
+        QVERIFY(fp(QStringLiteral("fr")) != first);
+
+        // same size, same time, other bytes: the inode's change time says so
+        const QString yml = tree + QStringLiteral("/main.yml");
+        const QDateTime when = QFileInfo(yml).lastModified();
+        QTest::qWait(20);
+        write(yml, "bbbb");
+        QFile f(yml);
+        QVERIFY(f.open(QIODevice::ReadWrite));
+        QVERIFY(f.setFileTime(when, QFileDevice::FileModificationTime));
+        f.close();
+        const QByteArray second = fp();
+        QVERIFY(second != first);
+
+        // a file or an icon that comes or goes
+        write(tree + QStringLiteral("/universe.yml"), "c");
+        const QByteArray third = fp();
+        QVERIFY(third != second);
+        write(icons + QStringLiteral("/two.png"), "png");
+        const QByteArray fourth = fp();
+        QVERIFY(fourth != third);
+        write(folder + QStringLiteral("/two.png"), "png");
+        QVERIFY(fp() != fourth);
+    }
+
+    void reloadSkipsTheReadWhenNothingChanged()
+    {
+        QTemporaryDir tmp;
+        const QString file = tmp.filePath(QStringLiteral("catalog"));
+        const QString feeds = tmp.filePath(QStringLiteral("feeds"));
+        QVERIFY(QDir().mkpath(feeds));
+        qputenv("RAYE_STORE_CACHE", file.toUtf8());
+        qputenv("RAYE_STORE_FEEDS", feeds.toUtf8());
+        // no read of AppStream gives these three
+        const QList<App> old{listed(QStringLiteral("a.One"), QStringLiteral("One")), listed(QStringLiteral("b.Two"), QStringLiteral("Two")),
+                             listed(QStringLiteral("c.Three"), QStringLiteral("Three"))};
+        const QByteArray bytes = encodeCatalog(old, {}, {}, catalogCacheStamp());
+        QFile f(file);
+        QVERIFY(f.open(QIODevice::WriteOnly));
+        f.write(bytes);
+        f.close();
+        saveSourcesNote(file, catalogDigest(bytes), catalogSourcesFingerprint());
+        QCOMPARE(readSourcesNote(file, catalogDigest(bytes)), catalogSourcesFingerprint());
+        // a note about other bytes says nothing
+        QVERIFY(readSourcesNote(file, catalogDigest(bytes + "x")).isEmpty());
+
+        const QStringList three{QStringLiteral("One"), QStringLiteral("Three"), QStringLiteral("Two")};
+        auto shown = [](const Catalog &c) {
+            QStringList out;
+            for (int i = 0; i < c.rowCount(); ++i)
+                out << c.index(i).data(Catalog::NameRole).toString();
+            out.sort();
+            return out;
+        };
+        {
+            Catalog catalog;
+            catalog.reload();
+            QTRY_VERIFY_WITH_TIMEOUT(catalog.settled(), 60000);
+            QCOMPARE(shown(catalog), three);
+            // the fresh metadata came and nothing changed: still no read
+            catalog.reload();
+            QTRY_VERIFY_WITH_TIMEOUT(catalog.settled(), 60000);
+            QCOMPARE(shown(catalog), three);
+
+            // a source changed: the real read replaces the list
+            QFile feed(feeds + QStringLiteral("/popular.json"));
+            QVERIFY(feed.open(QIODevice::WriteOnly));
+            feed.write("[]");
+            feed.close();
+            catalog.reload();
+            QTRY_VERIFY_WITH_TIMEOUT(catalog.settled(), 60000);
+            QVERIFY(shown(catalog) != three);
+        }
+        // and what it read is noted for the next start
+        QVERIFY(f.open(QIODevice::ReadOnly));
+        const QByteArray fresh = f.readAll();
+        f.close();
+        QCOMPARE(readSourcesNote(file, catalogDigest(fresh)), catalogSourcesFingerprint());
+
+        // a note left by other sources: read again
+        f.open(QIODevice::WriteOnly);
+        f.write(bytes);
+        f.close();
+        saveSourcesNote(file, catalogDigest(bytes), QByteArray(32, 'x'));
+        Catalog catalog;
+        catalog.reload();
+        QTRY_VERIFY_WITH_TIMEOUT(catalog.settled(), 60000);
+        QVERIFY(shown(catalog) != three);
+        qunsetenv("RAYE_STORE_CACHE");
+        qunsetenv("RAYE_STORE_FEEDS");
+    }
+
     void installedIsReadOffTheGuiThread()
     {
         // a slow flatpak must not hold the window

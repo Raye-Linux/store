@@ -194,6 +194,22 @@ QByteArray catalogDigest(const QByteArray &bytes);
 // the stamp of this run
 QString catalogCacheStamp();
 
+// A short hash of what these paths are on disk: names, sizes, times and
+// inodes, never contents. `trees` are walked; dot files are left out
+// (flatpak touches .timestamp at every check) and inside a folder named
+// icons only the folders count. Of `folders` only the folder itself
+// counts, which is enough to see a file come or go.
+QByteArray sourcesFingerprint(const QStringList &trees, const QStringList &folders, const QString &extra = {});
+// The same over everything a full read of the catalog depends on:
+// AppStream's catalogs, Flathub's metadata, the Store's data and feeds,
+// launchers, theme icons, this program and the language.
+QByteArray catalogSourcesFingerprint();
+// Kept next to the cache: which sources made the bytes of this digest
+// (catalogDigest). A reload whose sources still match skips reading
+// AppStream again.
+void saveSourcesNote(const QString &cacheFile, const QByteArray &digest, const QByteArray &sources);
+QByteArray readSourcesNote(const QString &cacheFile, const QByteArray &digest);
+
 class Catalog : public QAbstractListModel
 {
     Q_OBJECT
@@ -288,6 +304,7 @@ private:
     bool m_installedBusy = false;
     bool m_installedAgain = false;
     QByteArray m_shown;             // catalogDigest() of what the list shows
+    QByteArray m_shownSources;      // catalogSourcesFingerprint() it was read from, if known
 };
 
 // Search box, category, curated lists and sorting on top of the catalog:
