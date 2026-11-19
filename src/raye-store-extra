@@ -7,6 +7,8 @@ installs a .deb file someone opened.
     raye-store-extra remove <package>
     raye-store-extra install-file </path/to/file.deb> <sha256>
     raye-store-extra info </path/to/file.deb> <folder for its icon>
+    raye-store-extra repair
+    raye-store-extra clean
 
 install and remove run as root through pkexec, without a password for the
 sudo group. Only packages listed in the root-owned catalog can be touched;
@@ -20,6 +22,10 @@ into a folder of root's before anything looks at it, so it cannot change
 under apt, and the copy must have the SHA-256 the window read. Raye's own
 packages and essential ones are never replaced this way. apt installs the copy and fetches what it depends on, and never
 removes a package to make room for it.
+
+repair (the Store's settings) finishes what dpkg left half done, lets apt
+install what is missing and drops partial downloads; clean empties apt's
+download cache. Both run as root through pkexec, with the password.
 
 info runs as the person, never through pkexec: it reads the file and
 prints what the install window shows, as JSON.
@@ -704,7 +710,42 @@ def install_file(path, expected, say=say, apt=run_apt, cache=CACHE, architecture
         clean()
 
 
+PARTIAL_DIRS = ("/var/cache/apt/archives/partial", "/var/lib/apt/lists/partial")
+
+
+def repair(run=subprocess.run, partial_dirs=PARTIAL_DIRS):
+    """Each step runs even when one before failed. 0 when all went well."""
+    env = dict(os.environ, DEBIAN_FRONTEND="noninteractive")
+    say("phase repairing")
+    ok = run(["dpkg", "--configure", "-a", "--force-confdef", "--force-confold"],
+             env=env, stdin=subprocess.DEVNULL).returncode == 0
+    ok = run(["apt-get", "install", "-f", "-y", "-q",
+              "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold"],
+             env=env, stdin=subprocess.DEVNULL).returncode == 0 and ok
+    for folder in partial_dirs:
+        try:
+            names = os.listdir(folder)
+        except OSError:
+            continue
+        for name in names:
+            path = os.path.join(folder, name)
+            if os.path.isfile(path) and not os.path.islink(path):
+                os.unlink(path)
+    return 0 if ok else 1
+
+
+def clean_downloads(run=subprocess.run):
+    say("phase cleaning")
+    return run(["apt-get", "clean"], env=dict(os.environ, DEBIAN_FRONTEND="noninteractive"),
+               stdin=subprocess.DEVNULL).returncode
+
+
 def main(argv):
+    if len(argv) >= 2 and argv[1] in ("repair", "clean"):
+        if len(argv) != 2 or os.geteuid() != 0 or "PKEXEC_UID" not in os.environ:
+            print("usage: pkexec raye-store-extra repair|clean", file=sys.stderr)
+            return 2
+        return repair() if argv[1] == "repair" else clean_downloads()
     if len(argv) >= 2 and argv[1] == "install-file":
         # only as root, through pkexec, for someone
         if len(argv) != 4 or os.geteuid() != 0 or "PKEXEC_UID" not in os.environ:

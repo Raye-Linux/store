@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// The Store's settings: how apps update, what search shows, and which
-// Store this is.
+// The Store's settings: how apps update, where they come from, repairing
+// the installed packages, what search shows, and which Store this is.
 import QtQuick
 import QtQuick.Layouts
 import org.raye.store
@@ -26,6 +26,56 @@ PageScroll {
             description: i18n("Once a day, when this PC is plugged in and idle. Raye Update looks after the system.")
             checked: storeSettings.autoUpdate
             onToggled: on => storeSettings.autoUpdate = on
+        }
+        Action {
+            title: i18n("Updates for Raye Linux")
+            description: i18n("Raye Update installs them, with the security fixes and the drivers.")
+            buttonText: i18nc("@action:button", "Open Raye Update")
+            onClicked: storeSettings.openRayeUpdate()
+        }
+    }
+
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: Theme.s4
+        SectionHeader { Layout.fillWidth: true; title: i18nc("@title where apps are downloaded from", "Where apps come from") }
+        Repeater {
+            model: storeSettings.sources
+            delegate: SourceRow {
+                required property var modelData
+                name: modelData.name
+                detail: modelData.kind === "ubuntu" || modelData.kind === "raye"
+                        ? modelData.components.join(", ")
+                        : modelData.address
+                on: modelData.enabled
+            }
+        }
+        Component.onCompleted: storeSettings.readSources()
+    }
+
+    ColumnLayout {
+        Layout.fillWidth: true
+        spacing: Theme.s4
+        SectionHeader { Layout.fillWidth: true; title: i18nc("@title", "Repair") }
+        Action {
+            objectName: "repairPackages"
+            title: i18n("Repair packages")
+            description: storeSettings.maintenance === "repaired" ? i18n("Done. The packages are in order.")
+                       : storeSettings.maintenance === "repairFailed" ? i18n("Some packages could not be repaired. Try again after a restart.")
+                       : i18n("Finish installs that stopped halfway and add what is missing.")
+            buttonText: storeSettings.maintenance === "repairing" ? i18nc("@info:status", "Repairing…") : i18nc("@action:button", "Repair")
+            busy: storeSettings.maintenance === "repairing" || storeSettings.maintenance === "cleaning"
+            onClicked: storeSettings.repair()
+        }
+        Action {
+            objectName: "cleanDownloads"
+            title: i18n("Delete downloaded packages")
+            description: storeSettings.maintenance === "cleaned" ? i18n("Done. Installed apps are not touched.")
+                       : storeSettings.maintenance === "cleanFailed" ? i18n("They could not be deleted. Try again in a moment.")
+                       : i18n("Frees the space taken by packages that are already installed.")
+            buttonText: storeSettings.maintenance === "cleaning" ? i18nc("@info:status", "Deleting…") : i18nc("@action:button", "Delete")
+            busy: storeSettings.maintenance === "repairing" || storeSettings.maintenance === "cleaning"
+            onClicked: storeSettings.cleanDownloads()
         }
     }
 
@@ -69,6 +119,100 @@ PageScroll {
                     font: Theme.caption
                     color: Theme.textSecondary
                 }
+            }
+        }
+    }
+
+    // a place apps come from, as it is: nothing to change here
+    component SourceRow: Rectangle {
+        id: source
+        property string name
+        property string detail
+        property bool on: true
+        Layout.fillWidth: true
+        implicitHeight: Math.max(56, sourceWords.implicitHeight + 2 * Theme.s4)
+        radius: Theme.radiusControl
+        color: Theme.cardSolid
+        border.width: 1
+        border.color: Theme.strokeSurface
+        Accessible.role: Accessible.StaticText
+        Accessible.name: name + ", " + (on ? i18nc("@info a source is used", "In use") : i18nc("@info a source is not used", "Not in use"))
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Theme.s5
+            anchors.rightMargin: Theme.s5
+            spacing: Theme.s5
+            ColumnLayout {
+                id: sourceWords
+                Layout.fillWidth: true
+                spacing: Theme.s1
+                Text {
+                    Layout.fillWidth: true
+                    text: source.name
+                    font: Theme.body
+                    color: Theme.text
+                    elide: Text.ElideRight
+                }
+                Text {
+                    Layout.fillWidth: true
+                    visible: text !== ""
+                    text: source.detail
+                    font: Theme.caption
+                    color: Theme.textSecondary
+                    elide: Text.ElideMiddle
+                }
+            }
+            Text {
+                text: source.on ? i18nc("@info a source is used", "In use") : i18nc("@info a source is not used", "Not in use")
+                font: Theme.body
+                color: Theme.textSecondary
+            }
+        }
+    }
+
+    // one line of a section: what it does and a button
+    component Action: Rectangle {
+        id: action
+        property string title
+        property string description
+        property string buttonText
+        property bool busy: false
+        signal clicked()
+        Layout.fillWidth: true
+        implicitHeight: Math.max(64, actionWords.implicitHeight + 2 * Theme.s4)
+        radius: Theme.radiusControl
+        color: Theme.cardSolid
+        border.width: 1
+        border.color: Theme.strokeSurface
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Theme.s5
+            anchors.rightMargin: Theme.s5
+            spacing: Theme.s5
+            ColumnLayout {
+                id: actionWords
+                Layout.fillWidth: true
+                spacing: Theme.s1
+                Text {
+                    Layout.fillWidth: true
+                    text: action.title
+                    font: Theme.body
+                    color: Theme.text
+                    wrapMode: Text.Wrap
+                }
+                Text {
+                    Layout.fillWidth: true
+                    text: action.description
+                    font: Theme.caption
+                    color: Theme.textSecondary
+                    wrapMode: Text.Wrap
+                }
+            }
+            Button {
+                text: action.buttonText
+                enabled: !action.busy
+                Accessible.description: action.title
+                onClicked: action.clicked()
             }
         }
     }

@@ -145,6 +145,9 @@ ALLOWED_UNMARKED = {
         "goes into JobResult::detail, documented in installer.h as \"the "
         "backend's own words, for the logs\": classify() and qWarning read "
         "it, nobody shows it",
+    ("src/softwaresources.cpp", "Raye Linux"):
+        "the name of a software source, the same in every language "
+        "(Ubuntu and Flathub next to it are not prose)",
 }
 
 KEYWORDS = [

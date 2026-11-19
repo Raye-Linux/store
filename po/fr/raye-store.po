@@ -1863,3 +1863,69 @@ msgstr "L'installateur de son éditeur, depuis la page de l'éditeur, non vérif
 msgctxt "@info where the app comes from"
 msgid "Its maker's page"
 msgstr "La page de son éditeur"
+
+msgid "Updates for Raye Linux"
+msgstr "Mises à jour de Raye Linux"
+
+msgid "Raye Update installs them, with the security fixes and the drivers."
+msgstr "Raye Update les installe, avec les correctifs de sécurité et les pilotes."
+
+msgctxt "@action:button"
+msgid "Open Raye Update"
+msgstr "Ouvrir Raye Update"
+
+msgctxt "@title where apps are downloaded from"
+msgid "Where apps come from"
+msgstr "Provenance des applications"
+
+msgctxt "@title"
+msgid "Repair"
+msgstr "Réparation"
+
+msgid "Repair packages"
+msgstr "Réparer les paquets"
+
+msgid "Done. The packages are in order."
+msgstr "Terminé. Les paquets sont en ordre."
+
+msgid "Some packages could not be repaired. Try again after a restart."
+msgstr "Certains paquets n’ont pas pu être réparés. Réessayez après un redémarrage."
+
+msgid "Finish installs that stopped halfway and add what is missing."
+msgstr "Termine les installations interrompues et ajoute ce qui manque."
+
+msgctxt "@info:status"
+msgid "Repairing…"
+msgstr "Réparation…"
+
+msgctxt "@action:button"
+msgid "Repair"
+msgstr "Réparer"
+
+msgid "Delete downloaded packages"
+msgstr "Supprimer les paquets téléchargés"
+
+msgid "Done. Installed apps are not touched."
+msgstr "Terminé. Les applications installées ne sont pas touchées."
+
+msgid "They could not be deleted. Try again in a moment."
+msgstr "Ils n’ont pas pu être supprimés. Réessayez dans un instant."
+
+msgid "Frees the space taken by packages that are already installed."
+msgstr "Libère l’espace occupé par des paquets déjà installés."
+
+msgctxt "@info:status"
+msgid "Deleting…"
+msgstr "Suppression…"
+
+msgctxt "@action:button"
+msgid "Delete"
+msgstr "Supprimer"
+
+msgctxt "@info a source is used"
+msgid "In use"
+msgstr "Utilisée"
+
+msgctxt "@info a source is not used"
+msgid "Not in use"
+msgstr "Non utilisée"

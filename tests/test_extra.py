@@ -157,5 +157,50 @@ class TestExtra(unittest.TestCase):
         self.assertEqual(rse.main(["x"]), 2)
 
 
+class TestRepair(unittest.TestCase):
+    """Repair packages: finish what dpkg left half done, let apt fix what
+    is missing, and drop partial downloads. Clean: the download cache."""
+
+    def setUp(self):
+        self.calls = []
+
+    def fake_run(self, cmd, **kw):
+        self.calls.append(cmd)
+
+        class R:
+            returncode = self.codes.get(cmd[0] if cmd[0] != "apt-get" else " ".join(cmd[:2]), 0)
+        return R()
+
+    def test_repair_steps(self):
+        self.codes = {}
+        with tempfile.TemporaryDirectory() as tmp:
+            partial = os.path.join(tmp, "partial")
+            os.makedirs(partial)
+            open(os.path.join(partial, "half.deb"), "w").close()
+            self.assertEqual(rse.repair(run=self.fake_run, partial_dirs=[partial]), 0)
+            self.assertEqual(os.listdir(partial), [])
+        self.assertEqual(self.calls[0][:3], ["dpkg", "--configure", "-a"])
+        self.assertEqual(self.calls[1][:2], ["apt-get", "install"])
+        self.assertIn("-f", self.calls[1])
+        self.assertIn("-y", self.calls[1])
+
+    def test_repair_says_when_it_failed(self):
+        self.codes = {"apt-get install": 100}
+        self.assertEqual(rse.repair(run=self.fake_run, partial_dirs=[]), 1)
+        # dpkg first, then apt, every time: a failure does not skip the rest
+        self.assertEqual([c[0] for c in self.calls], ["dpkg", "apt-get"])
+
+    def test_clean(self):
+        self.codes = {}
+        self.assertEqual(rse.clean_downloads(run=self.fake_run), 0)
+        self.assertEqual(self.calls, [["apt-get", "clean"]])
+
+    def test_only_as_root_for_someone(self):
+        self.assertEqual(rse.main(["raye-store-extra", "repair", "extra"]), 2)
+        if os.geteuid() != 0:
+            self.assertEqual(rse.main(["raye-store-extra", "repair"]), 2)
+            self.assertEqual(rse.main(["raye-store-extra", "clean"]), 2)
+
+
 if __name__ == "__main__":
     unittest.main()
