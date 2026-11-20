@@ -36,7 +36,7 @@ def without_comments(text, suffix):
 
 class Release(unittest.TestCase):
     def test_version_is_the_beta(self):
-        self.assertRegex(VERSION, r"^\d+(?:\.\d+)+ Beta$")
+        self.assertRegex(VERSION, r"^\d+(?:\.\d+)+ Beta(?: \d+)?$")
 
     def test_mirrors_the_iso_version(self):
         """iso/VERSION decides the number; this repo only follows it. The
