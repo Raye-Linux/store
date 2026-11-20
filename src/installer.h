@@ -209,6 +209,9 @@ public:
     // or state Idle
     Q_INVOKABLE QVariantMap job(const QString &ref) const;
     Q_INVOKABLE void checkUpdates();
+    // "Get updates": check, then update every app found and the components
+    // they share (runtimes, the graphics driver's extensions) right away
+    Q_INVOKABLE void getUpdates();
     // fresh Flathub metadata, then catalogRefreshed()
     Q_INVOKABLE void refreshCatalog();
     // names, icons and release notes for the updates list
@@ -295,6 +298,7 @@ private:
     bool m_running = false;
     bool m_checking = false;
     bool m_checkAfterQueue = false;
+    bool m_installAfterCheck = false;
     bool m_refreshing = false;
     std::function<void()> m_cleanup;
     std::function<QStringList()> m_runningApps;

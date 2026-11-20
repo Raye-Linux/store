@@ -710,6 +710,50 @@ private Q_SLOTS:
         QCOMPARE(m_history->count(), 3);
     }
 
+    // "Get updates" in the Library: it checks and installs right away, the
+    // shared components too (a new runtime or graphics extension alone)
+    void getUpdatesInstallsWhatItFinds()
+    {
+        m_installer->getUpdates();
+        QVERIFY(m_installer->checking());
+        QCOMPARE(m_flatpak->checks, 1);
+        UpdateInfo vlc{QStringLiteral("org.videolan.VLC"), refOf(QStringLiteral("org.videolan.VLC")), QStringLiteral("VLC"), {},
+                       QStringLiteral("3.0.20"), QStringLiteral("3.0.21"), {}, 0};
+        Q_EMIT m_flatpak->updatesChecked({vlc}, {QStringLiteral("runtime/org.freedesktop.Platform.GL.nvidia-580-95-05/x86_64/1.4")}, {});
+        QCOMPARE(m_installer->jobs()->rowCount(), 2); // VLC, then the components
+        QCOMPARE(m_flatpak->started.first().action, QStringLiteral("update"));
+        QCOMPARE(m_flatpak->started.first().ref, refOf(QStringLiteral("org.videolan.VLC")));
+        m_flatpak->end(true);
+        QCOMPARE(m_flatpak->started.last().ref, QStringLiteral("runtime/*"));
+        m_flatpak->end(true);
+    }
+
+    void getUpdatesWithOnlyComponents()
+    {
+        m_installer->getUpdates();
+        Q_EMIT m_flatpak->updatesChecked({}, {QStringLiteral("runtime/org.kde.Platform/x86_64/6.9")}, {});
+        QCOMPARE(m_installer->jobs()->rowCount(), 1);
+        QCOMPARE(m_flatpak->started.last().ref, QStringLiteral("runtime/*"));
+        m_flatpak->end(true);
+    }
+
+    void getUpdatesWithNothingNewOrNoNetwork()
+    {
+        m_installer->getUpdates();
+        Q_EMIT m_flatpak->updatesChecked({}, {}, {});
+        QCOMPARE(m_installer->jobs()->rowCount(), 0);
+        m_installer->getUpdates();
+        UpdateInfo vlc{QStringLiteral("org.videolan.VLC"), refOf(QStringLiteral("org.videolan.VLC")), QStringLiteral("VLC"), {},
+                       {}, {}, {}, 0};
+        Q_EMIT m_flatpak->updatesChecked({vlc}, {}, QStringLiteral("Could not resolve hostname"));
+        QCOMPARE(m_installer->jobs()->rowCount(), 0);
+        // a plain check later only lists: it never installs on its own
+        m_installer->checkUpdates();
+        Q_EMIT m_flatpak->updatesChecked({vlc}, {}, {});
+        QCOMPARE(m_installer->updateCount(), 1);
+        QCOMPARE(m_installer->jobs()->rowCount(), 0);
+    }
+
     void failedCheckSaysWhy()
     {
         m_installer->checkUpdates();

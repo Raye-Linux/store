@@ -916,11 +916,19 @@ void Installer::checkUpdates()
     flatpak->checkUpdates();
 }
 
+void Installer::getUpdates()
+{
+    m_installAfterCheck = true;
+    checkUpdates();
+}
+
 void Installer::onUpdatesChecked(const QList<UpdateInfo> &apps, const QStringList &runtimes, const QString &error)
 {
     if (!m_checking)
         return;
     m_checking = false;
+    const bool install = m_installAfterCheck && error.isEmpty();
+    m_installAfterCheck = false;
     if (error.isEmpty()) {
         m_updates->set(apps);
         m_runtimeUpdates = runtimes;
@@ -934,6 +942,9 @@ void Installer::onUpdatesChecked(const QList<UpdateInfo> &apps, const QStringLis
     syncQueued();
     Q_EMIT updatesChanged();
     Q_EMIT checkingChanged();
+    // what "Get updates" found installs now, components alone included
+    if (install && (m_updates->count() > 0 || !m_runtimeUpdates.isEmpty()))
+        updateAll();
 }
 
 void Installer::refreshCatalog()

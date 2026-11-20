@@ -46,7 +46,8 @@ PageScroll {
             glyph: "refresh"
             text: installer.checking ? i18nc("@info:status", "Checking…") : i18nc("@action:button", "Get updates")
             enabled: !installer.checking
-            onClicked: installer.checkUpdates()
+            // checks, then installs what it found, with its bars below
+            onClicked: installer.getUpdates()
         }
         Button {
             accent: installer.flatpakUpdates > 0
