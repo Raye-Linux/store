@@ -97,6 +97,32 @@ class Keys(unittest.TestCase):
             with self.subTest(seq):
                 self.assertIn(does, actions.get(seq, ""))
 
+    def test_kirigamis_own_back_keys_are_turned_off(self):
+        # the page stack of Kirigami.ApplicationWindow binds StandardKey.Back
+        # and Forward (Alt+Left, Alt+Right in Plasma): with ours, two
+        # Shortcuts on one key, and Qt ran neither (VM 130, 2026-11-20)
+        text = strip_comments(MAIN)
+        self.assertIn("Kirigami.ApplicationWindow", text)
+        body = re.search(r"function quietPageStackKeys\(\)\s*\{(.*?)\n    \}", text, re.S)
+        self.assertTrue(body, "no quietPageStackKeys()")
+        self.assertIn("window.pageStack.resources", body.group(1))
+        self.assertIn("enabled = false", body.group(1))
+        start = re.search(r"Component\.onCompleted:\s*\{(.*?)\n    \}", text, re.S)
+        self.assertIn("quietPageStackKeys()", start.group(1))
+
+    def test_the_page_takes_the_keys_when_the_window_opens(self):
+        # opened from the taskbar, no item held the keys: Page Down and
+        # the arrows did nothing until a click in the page
+        text = strip_comments(MAIN)
+        self.assertRegex(text, r"onActiveChanged:\s*if\s*\(active\)\s*Qt\.callLater\(focusPage\)")
+        body = re.search(r"function focusPage\(\)\s*\{(.*?)\n    \}", text, re.S)
+        self.assertTrue(body, "no focusPage()")
+        self.assertIn("pages.current()", body.group(1))
+        self.assertIn("forceActiveFocus()", body.group(1))
+        # a field or a dialog that has the keys keeps them
+        self.assertIn("within(f, mainRow)", body.group(1))
+        self.assertIn("within(f, window.overlay)", body.group(1))
+
     def test_keys_that_type_wait_for_no_field(self):
         text = strip_comments(MAIN)
         for seq in ("/", "Backspace"):

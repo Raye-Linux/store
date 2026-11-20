@@ -135,6 +135,7 @@ Kirigami.ApplicationWindow {
         }
     }
     Component.onCompleted: {
+        quietPageStackKeys()
         // names, icons and notes for the updates list
         installer.setCatalog(catalog)
         openPending()
@@ -160,6 +161,15 @@ Kirigami.ApplicationWindow {
     Shortcut { sequence: "/"; enabled: !window.typing; onActivated: searchBox.forceActiveFocus() }
     Shortcut { sequences: ["Alt+Left", "Back"]; onActivated: window.back() }
     Shortcut { sequences: ["Alt+Right", "Forward"]; onActivated: window.forward() }
+    // Kirigami's page stack, which the Store does not use, binds Alt+Left
+    // and Alt+Right too (StandardKey.Back and Forward in Plasma). Two
+    // Shortcuts on one key are ambiguous and Qt runs neither: Alt+Left did
+    // nothing in a Plasma session (VM 130, 1.0 Beta Sundog). Its own go off.
+    function quietPageStackKeys() {
+        for (const o of window.pageStack.resources)
+            if (String(o).indexOf("Shortcut") >= 0)
+                o.enabled = false
+    }
     // only when no field is taking the key
     Shortcut { sequence: "Backspace"; enabled: !window.typing; onActivated: window.back() }
     Shortcut { sequences: ["F5", "Ctrl+R"]; onActivated: window.refresh() }
@@ -184,6 +194,26 @@ Kirigami.ApplicationWindow {
                 window.forward()
         }
     }
+
+    // A window that opens, or comes back from the taskbar, has no item
+    // holding the keys: the arrows and Page Down did nothing until a click
+    // in the page. The page shown takes them, unless a field or a window
+    // of the Store already has them.
+    function within(item, ancestor) {
+        for (let i = item; i; i = i.parent)
+            if (i === ancestor)
+                return true
+        return false
+    }
+    function focusPage() {
+        const f = window.activeFocusItem
+        if (f && (within(f, mainRow) || within(f, window.overlay)))
+            return
+        const page = pages.current()
+        if (page)
+            page.forceActiveFocus()
+    }
+    onActiveChanged: if (active) Qt.callLater(focusPage)
 
     // the arrows, Page Up and Down, Home, End and Space scroll the page
     // shown, unless what has the focus takes them (a text field, a list)
@@ -228,6 +258,7 @@ Kirigami.ApplicationWindow {
     }
 
     RowLayout {
+        id: mainRow
         anchors.fill: parent
         spacing: 0
         // keys no one took come here
