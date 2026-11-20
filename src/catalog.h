@@ -116,9 +116,37 @@ IconChoice pickIcon(const QList<IconCandidate> &candidates);
 // data dirs (hicolor, then pixmaps is not used: too small), or empty.
 IconChoice resolveStockIcon(const QString &name, const QStringList &dataDirs);
 
+// The desktops of this session (XDG_CURRENT_DESKTOP), KDE when not set.
+QStringList currentDesktops();
 // true when a .desktop file is not meant to show in menus: NoDisplay,
-// Hidden, or a console tool (Terminal=true).
-bool desktopEntryHidden(const QByteArray &contents);
+// Hidden, a console tool (Terminal=true), or one for another desktop
+// (OnlyShowIn without this one, NotShowIn with it).
+bool desktopEntryHidden(const QByteArray &contents, const QStringList &desktops = currentDesktops());
+
+// What Raye itself put on this PC, which the Library leaves out: it is
+// not the person's to manage, and removing it would take Raye apart.
+struct SystemPart {
+    // installed Raye packages (raye-*) and everything they pull in
+    QSet<QString> packages;
+    // launchers Raye hides or replaces (identity.json)
+    QSet<QString> hiddenLaunchers;
+    // the package of each system launcher ("firefox" -> "firefox"); a
+    // launcher no package owns (one under /usr/local) maps to ""
+    QHash<QString, QString> launcherPackages;
+};
+// The installed raye-* packages and what they need, through Depends,
+// Pre-Depends, Recommends, alternatives and virtual packages. Reads lines
+// of dpkg-query -f '${Package}\t${db:Status-Abbrev}\t${Pre-Depends}\t
+// ${Depends}\t${Recommends}\t${Provides}\n'.
+QSet<QString> rayesOwnPackages(const QByteArray &dpkgLines);
+// The launchers identity.json hides ("hidden") or gives to a Raye app
+// ("replaced_by"); empty when the file cannot be read.
+QSet<QString> identityHiddenLaunchers(const QByteArray &json);
+// Launcher id -> package from `dpkg-query -S <files>`.
+QHash<QString, QString> parseLauncherPackages(const QByteArray &output);
+// Tools for the system itself that the Library never lists, wherever
+// they came from: package managers, KDE's own settings and helpers.
+bool neverInLibrary(const QString &package);
 
 // A launcher a system package put in the applications folder.
 struct SystemLauncher {
@@ -226,7 +254,7 @@ public:
         MinimumAgeRole, BrandLightRole, BrandDarkRole, UrlsRole, DesktopIdRole, IsFreeRole,
         VerifiedRole, PopularityRole, TrendingRole, UpdatedAtRole, AddedAtRole, RatingAvgRole,
         RatingCountRole, RatingHistogramRole, KindRole, ListedRole, SystemCopyRole, WindowsStateRole,
-        WindowsNoteRole, DownloadSizeRole, WindowsAntiCheatRole, ReplacesRole
+        WindowsNoteRole, DownloadSizeRole, WindowsAntiCheatRole, ReplacesRole, LibraryRole
     };
 
     explicit Catalog(QObject *parent = nullptr);
@@ -240,6 +268,9 @@ public:
     // the launcher ("firefox.desktop") when the system's copy is what is
     // on this PC, else empty
     Q_INVOKABLE QString systemCopy(const QString &ref) const { return m_systemCopies.value(ref); }
+    // shown in the Library: installed by the person (or a system app a
+    // person added), never one of Raye's own parts
+    Q_INVOKABLE bool inLibrary(const QString &ref) const;
     // the app with this id, as the pages want it, or an empty map
     Q_INVOKABLE QVariantMap find(const QString &appId) const;
     // ids of a feed in its own order: popular, trending, recently-updated,
@@ -267,6 +298,8 @@ public:
     void setApps(QList<App> apps);
     void setFeeds(Feeds feeds);
     void setInstalled(QSet<QString> refs);
+    // what came with Raye (read with what is installed)
+    void setSystemPart(SystemPart part);
     // a job the installer just saw through: shown at once, before the
     // next read of what is installed says the same
     void noteInstalled(const QString &ref, bool installed);
@@ -287,6 +320,8 @@ Q_SIGNALS:
 private:
     void rewatch();
     void findSystemCopies();
+    bool libraryShows(const App &app) const;
+    void setInstalled(QSet<QString> refs, bool partChanged);
 
     QList<App> m_apps;
     QFileSystemWatcher *m_watcher = nullptr;
@@ -296,6 +331,7 @@ private:
     QSet<QString> m_installed; // refs and package names
     QList<SystemLauncher> m_launchers;
     QHash<QString, QString> m_systemCopies; // ref -> "firefox.desktop"
+    SystemPart m_systemPart;
     QStringList m_windowsOrder;
     bool m_loading = false;
     bool m_settled = false;

@@ -15,6 +15,8 @@ raye-store (1.0~beta2) resolute; urgency=medium
     downloaded packages, and open Raye Update.
   * The Store opens with about half the memory: it reads all of AppStream
     again only when something it is made from has changed.
+  * The Library lists only the apps you installed: Raye's own parts,
+    Synaptic and KDE's settings and helper tools stay out of it.
 
  -- techoraye <190692880+techoraye@users.noreply.github.com>  Thu, 19 Nov 2026 10:00:00 +0000
 

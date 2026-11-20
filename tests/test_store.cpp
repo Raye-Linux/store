@@ -399,6 +399,153 @@ private Q_SLOTS:
         // keys of another group do not count
         QVERIFY(!desktopEntryHidden("[Desktop Entry]\nName=X\n[Desktop Action new]\nNoDisplay=true\n"));
         QVERIFY(!desktopEntryHidden("[Desktop Entry]\nNoDisplay=false\n"));
+        // meant for another desktop than the one running
+        const QStringList kde{QStringLiteral("KDE")};
+        QVERIFY(desktopEntryHidden("[Desktop Entry]\nName=Indicator\nNotShowIn=KDE;\n", kde));
+        QVERIFY(desktopEntryHidden("[Desktop Entry]\nName=Gnome thing\nOnlyShowIn=GNOME;Unity;\n", kde));
+        QVERIFY(!desktopEntryHidden("[Desktop Entry]\nName=Ours\nOnlyShowIn=GNOME;KDE;\n", kde));
+        QVERIFY(!desktopEntryHidden("[Desktop Entry]\nName=Elsewhere\nNotShowIn=GNOME;\n", kde));
+        QVERIFY(!desktopEntryHidden("[Desktop Entry]\nName=Indicator\nNotShowIn=KDE;\n", {QStringLiteral("Hyprland")}));
+    }
+
+    // --- the Library: what a person installed, never Raye's own parts
+
+    void ownPackagesFromDpkg()
+    {
+        // ${Package} ${db:Status-Abbrev} ${Pre-Depends} ${Depends} ${Recommends} ${Provides}, tab separated
+        const QByteArray dpkg =
+            "raye-desktop\tii \t\traye-system (>= 1.0), systemsettings, kdeconnect | gsconnect, firefox\tkwalletmanager\t\n"
+            "raye-system\tii \tdpkg (>= 1.19)\twww-browser, libc6\t\t\n"
+            "systemsettings\tii \t\tlibkf6kcmutils6 (>= 6.0)\t\t\n"
+            "kdeconnect\tii \t\t\t\t\n"
+            "kwalletmanager\tii \t\t\t\t\n"
+            "firefox\tii \t\t\t\tgnome-www-browser, www-browser\n"
+            "libkf6kcmutils6\tii \t\t\t\t\n"
+            "libc6\tii \t\t\t\t\n"
+            "dpkg\tii \t\t\t\t\n"
+            "vlc\tii \t\tlibc6\t\t\n"
+            "synaptic\tii \t\tlibc6\t\t\n"
+            // removed, its files gone: not a part of anything
+            "old-tool\trc \t\t\t\t\n"
+            "raye-gaming\tii \t\tgamemode\t\t\n";
+        const QSet<QString> own = rayesOwnPackages(dpkg);
+        for (const char *name : {"raye-desktop", "raye-system", "raye-gaming", "systemsettings", "kdeconnect",
+                                 "kwalletmanager", "firefox", "libkf6kcmutils6", "libc6", "dpkg"})
+            QVERIFY2(own.contains(QLatin1String(name)), name);
+        // what a person put there, and a dependency nobody installed
+        QVERIFY(!own.contains(QStringLiteral("vlc")));
+        QVERIFY(!own.contains(QStringLiteral("synaptic")));
+        QVERIFY(!own.contains(QStringLiteral("old-tool")));
+        QVERIFY(!own.contains(QStringLiteral("gsconnect")));
+        QVERIFY(!own.contains(QStringLiteral("gamemode")));
+        QVERIFY(rayesOwnPackages("").isEmpty());
+    }
+
+    void identityLaunchersHidden()
+    {
+        const QByteArray json = R"({"apps": {
+            "org.kde.kate.desktop": {"name": {"en": "Text Editor", "fr": "x"}},
+            "org.kde.kwalletmanager.desktop": {"hidden": true},
+            "systemsettings.desktop": {"replaced_by": "org.raye.settings.desktop"},
+            "org.kde.kclock.desktop": {"name": {"en": "Clock"}, "replaced_by": "org.raye.clock.desktop"}}})";
+        const QSet<QString> hidden = identityHiddenLaunchers(json);
+        QCOMPARE(hidden, (QSet<QString>{QStringLiteral("org.kde.kwalletmanager.desktop"), QStringLiteral("systemsettings.desktop"),
+                                        QStringLiteral("org.kde.kclock.desktop")}));
+        QVERIFY(identityHiddenLaunchers("not json").isEmpty());
+    }
+
+    void launcherPackagesFromDpkg()
+    {
+        const QByteArray out =
+            "diversion by raye-desktop from: /usr/share/applications/org.kde.kdeconnect.app.desktop\n"
+            "diversion by raye-desktop to: /usr/share/applications/org.kde.kdeconnect.app.desktop.ubuntu\n"
+            "raye-desktop: /usr/share/applications/org.kde.kdeconnect.app.desktop\n"
+            "firefox: /usr/share/applications/firefox.desktop\n"
+            "vlc, vlc-bin: /usr/share/applications/vlc.desktop\n";
+        const QHash<QString, QString> found = parseLauncherPackages(out);
+        QCOMPARE(found.value(QStringLiteral("firefox")), QStringLiteral("firefox"));
+        QCOMPARE(found.value(QStringLiteral("vlc")), QStringLiteral("vlc"));
+        QCOMPARE(found.value(QStringLiteral("org.kde.kdeconnect.app")), QStringLiteral("raye-desktop"));
+        QCOMPARE(found.size(), 3);
+    }
+
+    // the owner's Library on a Beta 1 PC: Synaptic, KDE's System Settings,
+    // KDE Connect and its helpers, KWalletManager next to his apps
+    void libraryLeavesRayeOut()
+    {
+        App discord = listed(QStringLiteral("com.discordapp.Discord"), QStringLiteral("Discord"));
+        App synaptic = listed(QStringLiteral("synaptic"), QStringLiteral("Synaptic Package Manager"));
+        synaptic.source = QStringLiteral("apt");
+        synaptic.ref = QStringLiteral("synaptic");
+        synaptic.desktopId = QStringLiteral("synaptic.desktop");
+        App settings = synaptic;
+        settings.id = QStringLiteral("org.kde.systemsettings");
+        settings.name = QStringLiteral("System Settings");
+        settings.ref = QStringLiteral("systemsettings");
+        settings.desktopId = QStringLiteral("systemsettings.desktop");
+        App connect = settings;
+        connect.id = QStringLiteral("org.kde.kdeconnect");
+        connect.name = QStringLiteral("KDE Connect");
+        connect.ref = QStringLiteral("kdeconnect");
+        connect.desktopId = QStringLiteral("org.kde.kdeconnect.app.desktop");
+        App wallet = settings;
+        wallet.id = QStringLiteral("org.kde.kwalletmanager5");
+        wallet.name = QStringLiteral("KWalletManager");
+        wallet.ref = QStringLiteral("kwalletmanager");
+        wallet.desktopId = QStringLiteral("org.kde.kwalletmanager.desktop");
+        // a package a person installed, with a hidden launcher: a helper
+        App helper = settings;
+        helper.id = QStringLiteral("org.example.helper");
+        helper.name = QStringLiteral("Helper");
+        helper.ref = QStringLiteral("example-helper");
+        helper.desktopId = QStringLiteral("org.example.helper.desktop");
+        helper.noDisplay = true;
+        // what a person installed from the archive
+        App vlc = settings;
+        vlc.id = QStringLiteral("org.videolan.VLC");
+        vlc.name = QStringLiteral("VLC");
+        vlc.ref = QStringLiteral("vlc");
+        vlc.desktopId = QStringLiteral("vlc.desktop");
+        // a Flathub listing whose app the system has: Firefox comes with
+        // Raye, GIMP was installed from the archive by hand
+        App firefox = listed(QStringLiteral("org.mozilla.firefox"), QStringLiteral("Firefox"));
+        App gimp = listed(QStringLiteral("org.gimp.GIMP"), QStringLiteral("GIMP"));
+        App extra = listed(QStringLiteral("com.teamviewer.TeamViewer"), QStringLiteral("TeamViewer"));
+        extra.source = QStringLiteral("raye");
+        extra.ref = QStringLiteral("teamviewer");
+        App windows = listed(QStringLiteral("windows.winrar"), QStringLiteral("WinRAR"));
+        windows.source = QStringLiteral("windows");
+        windows.ref = QStringLiteral("windows:winrar");
+
+        Catalog catalog;
+        catalog.setApps({discord, synaptic, settings, connect, wallet, helper, vlc, firefox, gimp, extra, windows});
+        SystemPart part;
+        part.packages = {QStringLiteral("systemsettings"), QStringLiteral("kdeconnect"), QStringLiteral("firefox"),
+                         QStringLiteral("raye-desktop")};
+        part.hiddenLaunchers = {QStringLiteral("org.kde.kwalletmanager.desktop")};
+        part.launcherPackages = {{QStringLiteral("firefox"), QStringLiteral("firefox")}, {QStringLiteral("gimp"), QStringLiteral("gimp")}};
+        catalog.setSystemPart(part);
+        catalog.setSystemLaunchers({{QStringLiteral("firefox"), QStringLiteral("Firefox")}, {QStringLiteral("gimp"), QStringLiteral("GIMP")}});
+        catalog.setInstalled({discord.ref, QStringLiteral("synaptic"), QStringLiteral("systemsettings"), QStringLiteral("kdeconnect"),
+                              QStringLiteral("kwalletmanager"), QStringLiteral("example-helper"), QStringLiteral("vlc"),
+                              QStringLiteral("teamviewer"), QStringLiteral("windows:winrar")});
+
+        CatalogFilter lib;
+        lib.setSourceModel(&catalog);
+        lib.setInstalledOnly(true);
+        lib.setSortBy(QStringLiteral("name"));
+        QTRY_COMPARE(names(lib), (QStringList{QStringLiteral("Discord"), QStringLiteral("GIMP"), QStringLiteral("TeamViewer"),
+                                              QStringLiteral("VLC"), QStringLiteral("WinRAR")}));
+        // still installed for the pages: only the Library leaves them out
+        QVERIFY(catalog.isInstalled(QStringLiteral("systemsettings")));
+        QVERIFY(catalog.isInstalled(firefox.ref));
+        QVERIFY(!catalog.inLibrary(firefox.ref));
+        QVERIFY(catalog.inLibrary(gimp.ref));
+
+        // the part read again: a package Raye no longer pulls in is the person's
+        part.packages.remove(QStringLiteral("kdeconnect"));
+        catalog.setSystemPart(part);
+        QTRY_VERIFY(names(lib).contains(QStringLiteral("KDE Connect")));
     }
 
     void iconPick()

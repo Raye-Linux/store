@@ -475,24 +475,61 @@ QString libraryOf(const void *symbol)
 struct InstalledNow {
     QSet<QString> refs;
     QList<SystemLauncher> launchers;
+    SystemPart part;
 };
 
-QSet<QString> installedNow()
+// Where the stock launchers of the system live; /usr/local first.
+const QStringList &launcherDirs()
 {
-    QSet<QString> found;
+    static const QStringList dirs{QStringLiteral("/usr/local/share/applications"), QStringLiteral("/usr/share/applications")};
+    return dirs;
+}
+
+// The package of each launcher, by one dpkg-query over all their files.
+QHash<QString, QString> launcherPackagesNow(const QList<SystemLauncher> &launchers)
+{
+    QHash<QString, QString> found;
+    QStringList files;
+    for (const SystemLauncher &l : launchers) {
+        const QString local = launcherDirs().first() + QLatin1Char('/') + l.id + QLatin1String(".desktop");
+        if (QFileInfo::exists(local))
+            found.insert(l.id, QString()); // put there by hand: the person's
+        else
+            files.append(launcherDirs().last() + QLatin1Char('/') + l.id + QLatin1String(".desktop"));
+    }
+    if (files.isEmpty())
+        return found;
+    QProcess dpkg;
+    dpkg.start(QStringLiteral("dpkg-query"), QStringList{QStringLiteral("-S")} + files);
+    dpkg.waitForFinished(20000);
+    found.insert(parseLauncherPackages(dpkg.readAllStandardOutput()));
+    return found;
+}
+
+void readInstalledNow(InstalledNow &now)
+{
+    QSet<QString> &found = now.refs;
     QProcess flatpak;
     flatpak.start(QStringLiteral("flatpak"), {QStringLiteral("list"), QStringLiteral("--app"), QStringLiteral("--columns=ref")});
     flatpak.waitForFinished(20000);
     for (const QString &line : QString::fromUtf8(flatpak.readAllStandardOutput()).split(QLatin1Char('\n'), Qt::SkipEmptyParts))
         found.insert(QStringLiteral("app/") + line.trimmed());
     QProcess dpkg;
-    dpkg.start(QStringLiteral("dpkg-query"), {QStringLiteral("-W"), QStringLiteral("-f=${Package} ${db:Status-Abbrev}\\n")});
+    dpkg.start(QStringLiteral("dpkg-query"),
+               {QStringLiteral("-W"),
+                QStringLiteral("-f=${Package}\\t${db:Status-Abbrev}\\t${Pre-Depends}\\t${Depends}\\t${Recommends}\\t${Provides}\\n")});
     dpkg.waitForFinished(20000);
-    for (const QString &line : QString::fromUtf8(dpkg.readAllStandardOutput()).split(QLatin1Char('\n'), Qt::SkipEmptyParts)) {
-        const QStringList parts = line.split(QLatin1Char(' '), Qt::SkipEmptyParts);
-        if (parts.size() >= 2 && parts.at(1).startsWith(QLatin1String("ii")))
-            found.insert(parts.at(0));
+    const QByteArray packages = dpkg.readAllStandardOutput();
+    for (const QByteArray &line : packages.split('\n')) {
+        const QList<QByteArray> parts = line.split('\t');
+        if (parts.size() >= 2 && parts.at(1).startsWith("ii"))
+            found.insert(QString::fromUtf8(parts.at(0)));
     }
+    now.part.packages = rayesOwnPackages(packages);
+    QFile identity(QStringLiteral("/usr/share/raye/app-identity/identity.json"));
+    if (identity.open(QIODevice::ReadOnly))
+        now.part.hiddenLaunchers = identityHiddenLaunchers(identity.readAll());
+    now.part.launcherPackages = launcherPackagesNow(now.launchers);
     // Windows programs: a space with at least one program in it
     const QString tool = QStandardPaths::findExecutable(QStringLiteral("raye-windows"));
     if (!tool.isEmpty()) {
@@ -505,7 +542,6 @@ QSet<QString> installedNow()
                 found.insert(ref);
         }
     }
-    return found;
 }
 
 QVariant dateOrNothing(qint64 secs)
@@ -891,8 +927,21 @@ QString systemLauncherFor(const App &app, const QList<SystemLauncher> &launchers
     return {};
 }
 
-bool desktopEntryHidden(const QByteArray &contents)
+QStringList currentDesktops()
 {
+    const QString env = qEnvironmentVariable("XDG_CURRENT_DESKTOP");
+    const QStringList desktops = env.split(QLatin1Char(':'), Qt::SkipEmptyParts);
+    return desktops.isEmpty() ? QStringList{QStringLiteral("KDE")} : desktops;
+}
+
+bool desktopEntryHidden(const QByteArray &contents, const QStringList &desktops)
+{
+    const auto names = [](const QByteArray &value) {
+        return QString::fromUtf8(value).split(QLatin1Char(';'), Qt::SkipEmptyParts);
+    };
+    const auto meets = [&desktops](const QStringList &list) {
+        return std::any_of(desktops.cbegin(), desktops.cend(), [&list](const QString &d) { return list.contains(d); });
+    };
     bool inEntry = false;
     for (const QByteArray &raw : contents.split('\n')) {
         const QByteArray line = raw.trimmed();
@@ -909,8 +958,113 @@ bool desktopEntryHidden(const QByteArray &contents)
         const QByteArray value = line.mid(eq + 1).trimmed();
         if ((key == "NoDisplay" || key == "Hidden" || key == "Terminal") && value == "true")
             return true;
+        if (key == "OnlyShowIn" && !meets(names(value)))
+            return true;
+        if (key == "NotShowIn" && meets(names(value)))
+            return true;
     }
     return false;
+}
+
+QSet<QString> rayesOwnPackages(const QByteArray &dpkgLines)
+{
+    // package -> what it needs, each need a list of alternatives
+    QHash<QString, QList<QStringList>> needs;
+    QHash<QString, QStringList> providers;
+    const auto relations = [](const QByteArray &field) {
+        QList<QStringList> out;
+        for (const QByteArray &need : field.split(',')) {
+            QStringList alternatives;
+            for (const QByteArray &alt : need.split('|')) {
+                QString name = QString::fromUtf8(alt).trimmed().section(QLatin1Char(' '), 0, 0).section(QLatin1Char(':'), 0, 0);
+                if (!name.isEmpty())
+                    alternatives.append(name);
+            }
+            if (!alternatives.isEmpty())
+                out.append(alternatives);
+        }
+        return out;
+    };
+    for (const QByteArray &line : dpkgLines.split('\n')) {
+        const QList<QByteArray> parts = line.split('\t');
+        if (parts.size() < 2 || !parts.at(1).startsWith("ii"))
+            continue;
+        const QString name = QString::fromUtf8(parts.at(0)).trimmed().section(QLatin1Char(':'), 0, 0);
+        QList<QStringList> list;
+        for (int i = 2; i < qMin<qsizetype>(parts.size(), 5); ++i)
+            list += relations(parts.at(i));
+        needs.insert(name, list);
+        if (parts.size() > 5) {
+            for (const QStringList &virt : relations(parts.at(5)))
+                providers[virt.first()].append(name);
+        }
+    }
+    QSet<QString> own;
+    QStringList todo;
+    for (auto it = needs.cbegin(); it != needs.cend(); ++it) {
+        if (it.key().startsWith(QLatin1String("raye-")))
+            todo.append(it.key());
+    }
+    while (!todo.isEmpty()) {
+        const QString name = todo.takeLast();
+        if (own.contains(name))
+            continue;
+        own.insert(name);
+        for (const QStringList &alternatives : needs.value(name)) {
+            for (const QString &alt : alternatives) {
+                if (needs.contains(alt))
+                    todo.append(alt);
+                for (const QString &p : providers.value(alt))
+                    todo.append(p);
+            }
+        }
+    }
+    return own;
+}
+
+QSet<QString> identityHiddenLaunchers(const QByteArray &json)
+{
+    QSet<QString> out;
+    const QJsonObject apps = QJsonDocument::fromJson(json).object().value(QStringLiteral("apps")).toObject();
+    for (auto it = apps.begin(); it != apps.end(); ++it) {
+        const QJsonObject app = it.value().toObject();
+        if (app.value(QStringLiteral("hidden")).toBool() || !app.value(QStringLiteral("replaced_by")).toString().isEmpty())
+            out.insert(it.key());
+    }
+    return out;
+}
+
+QHash<QString, QString> parseLauncherPackages(const QByteArray &output)
+{
+    QHash<QString, QString> out;
+    for (const QByteArray &raw : output.split('\n')) {
+        const QString line = QString::fromUtf8(raw).trimmed();
+        if (line.startsWith(QLatin1String("diversion ")))
+            continue;
+        const qsizetype colon = line.indexOf(QLatin1String(": /"));
+        if (colon <= 0)
+            continue;
+        const QString package = line.left(colon).section(QLatin1Char(','), 0, 0).trimmed().section(QLatin1Char(':'), 0, 0);
+        const QString file = line.mid(colon + 2);
+        if (!file.endsWith(QLatin1String(".desktop")))
+            continue;
+        out.insert(appKey(file.section(QLatin1Char('/'), -1)), package);
+    }
+    return out;
+}
+
+bool neverInLibrary(const QString &package)
+{
+    // the system's own tools: the Store, Raye Update and Raye Settings do
+    // their work, and a person never installs them to use as an app
+    static const QSet<QString> never{
+        QStringLiteral("synaptic"), QStringLiteral("aptitude"), QStringLiteral("plasma-discover"),
+        QStringLiteral("gnome-software"), QStringLiteral("software-properties-qt"),
+        QStringLiteral("software-properties-kde"), QStringLiteral("software-properties-gtk"),
+        QStringLiteral("update-manager"), QStringLiteral("systemsettings"), QStringLiteral("kwalletmanager"),
+        QStringLiteral("kinfocenter"), QStringLiteral("kmenuedit"), QStringLiteral("khelpcenter"),
+    };
+    return package.startsWith(QLatin1String("raye-")) || never.contains(package);
 }
 
 Rating parseRating(const QJsonObject &stars)
@@ -1252,30 +1406,71 @@ void Catalog::refreshInstalled()
         InstalledNow now = watcher->result();
         watcher->deleteLater();
         m_launchers = std::move(now.launchers);
-        setInstalled(std::move(now.refs));
+        m_systemPart = std::move(now.part);
+        setInstalled(std::move(now.refs), true);
         m_installedBusy = false;
         if (std::exchange(m_installedAgain, false))
             refreshInstalled();
     });
     watcher->setFuture(QtConcurrent::run([] {
         InstalledNow now;
-        now.launchers = readSystemLaunchers({QStringLiteral("/usr/local/share/applications"), QStringLiteral("/usr/share/applications")});
-        now.refs = installedNow();
+        now.launchers = readSystemLaunchers(launcherDirs());
+        readInstalledNow(now);
         return now;
     }));
 }
 
 void Catalog::setInstalled(QSet<QString> refs)
 {
+    setInstalled(std::move(refs), false);
+}
+
+void Catalog::setInstalled(QSet<QString> refs, bool partChanged)
+{
     const QHash<QString, QString> copiesBefore = m_systemCopies;
     const bool same = refs == m_installed;
     m_installed = std::move(refs);
     findSystemCopies();
-    if (same && copiesBefore == m_systemCopies)
+    if (same && copiesBefore == m_systemCopies && !partChanged)
         return;
     if (!m_apps.isEmpty())
-        Q_EMIT dataChanged(index(0), index(int(m_apps.size()) - 1), {InstalledRole, SystemCopyRole});
+        Q_EMIT dataChanged(index(0), index(int(m_apps.size()) - 1), {InstalledRole, SystemCopyRole, LibraryRole});
     Q_EMIT installedChanged();
+}
+
+void Catalog::setSystemPart(SystemPart part)
+{
+    m_systemPart = std::move(part);
+    setInstalled(m_installed, true);
+}
+
+bool Catalog::libraryShows(const App &app) const
+{
+    if (app.source == QLatin1String("apt")) {
+        // an archive app: the person's own package, with a launcher the
+        // Start menu shows
+        return m_installed.contains(app.ref) && !m_systemPart.packages.contains(app.ref) && !neverInLibrary(app.ref)
+            && !app.noDisplay && !m_systemPart.hiddenLaunchers.contains(app.desktopId);
+    }
+    if (m_installed.contains(app.ref))
+        return true;
+    // the system's copy of a listed app: only when Raye did not bring it
+    const QString launcher = m_systemCopies.value(app.ref);
+    if (launcher.isEmpty() || m_systemPart.hiddenLaunchers.contains(launcher))
+        return false;
+    const auto package = m_systemPart.launcherPackages.constFind(appKey(launcher));
+    if (package == m_systemPart.launcherPackages.cend())
+        return false; // nobody knows whose it is: not shown as the person's
+    return package->isEmpty() || (!m_systemPart.packages.contains(*package) && !neverInLibrary(*package));
+}
+
+bool Catalog::inLibrary(const QString &ref) const
+{
+    for (const App &app : m_apps) {
+        if (app.ref == ref)
+            return libraryShows(app);
+    }
+    return false;
 }
 
 void Catalog::noteInstalled(const QString &ref, bool installed)
@@ -1437,6 +1632,7 @@ QVariant Catalog::data(const QModelIndex &index, int role) const
     case KeywordsRole: return a.keywords;
     case InstalledRole: return isInstalled(a.ref);
     case SystemCopyRole: return m_systemCopies.value(a.ref);
+    case LibraryRole: return libraryShows(a);
     case PreviewRole: return a.preview;
     case ReleasesRole: {
         QVariantList list;
@@ -1508,7 +1704,7 @@ QHash<int, QByteArray> Catalog::roleNames() const
             {ScreenshotRole, "screenshot"}, {ScreenshotsRole, "screenshots"}, {VideosRole, "videos"},
             {DeveloperRole, "developer"}, {LicenseRole, "license"}, {SourceRole, "source"},
             {RefRole, "ref"}, {CategoriesRole, "categories"}, {KeywordsRole, "keywords"},
-            {InstalledRole, "installed"}, {SystemCopyRole, "systemCopy"}, {PreviewRole, "preview"}, {ReleasesRole, "releases"},
+            {InstalledRole, "installed"}, {SystemCopyRole, "systemCopy"}, {LibraryRole, "inLibrary"}, {PreviewRole, "preview"}, {ReleasesRole, "releases"},
             {MinimumAgeRole, "minimumAge"}, {BrandLightRole, "brandLight"}, {BrandDarkRole, "brandDark"},
             {UrlsRole, "urls"}, {DesktopIdRole, "desktopId"}, {IsFreeRole, "isFree"},
             {VerifiedRole, "verified"}, {PopularityRole, "popularity"}, {TrendingRole, "trending"},
@@ -1606,7 +1802,7 @@ void CatalogFilter::rank() const
     for (int r = 0; r < n; ++r) {
         const QModelIndex i = src->index(r, 0);
         auto role = [&i](int rl) { return i.data(rl); };
-        if (m_installedOnly && !role(Catalog::InstalledRole).toBool())
+        if (m_installedOnly && !role(Catalog::LibraryRole).toBool())
             continue;
         if (!m_category.isEmpty() && !role(Catalog::CategoriesRole).toStringList().contains(m_category))
             continue;
