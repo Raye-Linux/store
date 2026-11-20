@@ -9,6 +9,8 @@ T.TextField {
 
     signal searchNow()
     signal dismissSuggestions()
+    signal cleared()
+    signal leave()
     property bool suggestionsShown: false
 
     implicitWidth: Theme.searchMaxWidth
@@ -33,9 +35,11 @@ T.TextField {
             event.accepted = true
         } else if (text !== "") {
             text = ""
+            cleared()
             event.accepted = true
         } else {
-            event.accepted = false
+            leave()
+            event.accepted = true
         }
     }
 

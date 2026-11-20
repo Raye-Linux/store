@@ -1929,3 +1929,111 @@ msgstr "Utilisée"
 msgctxt "@info a source is not used"
 msgid "Not in use"
 msgstr "Non utilisée"
+
+msgctxt "@info keyboard shortcut"
+msgid "Search"
+msgstr "Rechercher"
+
+msgctxt "@info a key on the keyboard"
+msgid "Esc"
+msgstr "Échap"
+
+msgctxt "@info keyboard shortcut"
+msgid "Clear the search, or close a window"
+msgstr "Effacer la recherche ou fermer une fenêtre"
+
+msgctxt "@info keys on the keyboard"
+msgid "Alt+Left  /  Backspace"
+msgstr "Alt+Gauche  /  Retour arrière"
+
+msgctxt "@info keyboard shortcut"
+msgid "Go back"
+msgstr "Revenir en arrière"
+
+msgctxt "@info keys on the keyboard"
+msgid "Alt+Right"
+msgstr "Alt+Droite"
+
+msgctxt "@info keyboard shortcut"
+msgid "Go forward"
+msgstr "Aller en avant"
+
+msgctxt "@info keyboard shortcut"
+msgid "Refresh"
+msgstr "Actualiser"
+
+msgctxt "@info keyboard shortcut"
+msgid "Home"
+msgstr "Accueil"
+
+msgctxt "@info keyboard shortcut"
+msgid "Apps"
+msgstr "Applications"
+
+msgctxt "@info keyboard shortcut"
+msgid "Games"
+msgstr "Jeux"
+
+msgctxt "@info keyboard shortcut"
+msgid "Library"
+msgstr "Bibliothèque"
+
+msgctxt "@info keyboard shortcut"
+msgid "Store settings"
+msgstr "Réglages du Store"
+
+msgctxt "@info a key on the keyboard"
+msgid "Enter"
+msgstr "Entrée"
+
+msgctxt "@info keyboard shortcut"
+msgid "Open the selected app"
+msgstr "Ouvrir l'application sélectionnée"
+
+msgctxt "@info keys on the keyboard"
+msgid "Arrows"
+msgstr "Flèches"
+
+msgctxt "@info keyboard shortcut"
+msgid "Scroll, or move between apps"
+msgstr "Faire défiler ou passer d'une application à l'autre"
+
+msgctxt "@info keys on the keyboard"
+msgid "Page Up  /  Page Down  /  Space"
+msgstr "Page préc.  /  Page suiv.  /  Espace"
+
+msgctxt "@info keyboard shortcut"
+msgid "Scroll by a page"
+msgstr "Faire défiler d'une page"
+
+msgctxt "@info keys on the keyboard"
+msgid "Home  /  End"
+msgstr "Début  /  Fin"
+
+msgctxt "@info keyboard shortcut"
+msgid "Go to the top or the bottom"
+msgstr "Aller tout en haut ou tout en bas"
+
+msgctxt "@info keyboard shortcut"
+msgid "Show these shortcuts"
+msgstr "Afficher ces raccourcis"
+
+msgctxt "@info keyboard shortcut"
+msgid "Close the Store"
+msgstr "Fermer le Store"
+
+msgctxt "@title:window"
+msgid "Keyboard shortcuts"
+msgstr "Raccourcis clavier"
+
+msgctxt "@info:tooltip a place and its keyboard shortcut"
+msgid "%1 (%2)"
+msgstr "%1 (%2)"
+
+msgctxt "@info:tooltip"
+msgid "Back (Alt+Left)"
+msgstr "Retour (Alt+Gauche)"
+
+msgctxt "@info:tooltip"
+msgid "Search (Ctrl+F)"
+msgstr "Rechercher (Ctrl+F)"

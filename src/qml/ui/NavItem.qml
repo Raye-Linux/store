@@ -4,6 +4,7 @@
 // drawn by the rail, so it can slide from one place to the next.
 import QtQuick
 import QtQuick.Templates as T
+import QtQuick.Controls as QQC2
 
 T.AbstractButton {
     id: item
@@ -15,6 +16,12 @@ T.AbstractButton {
     // download arrow while something installs
     property int badgeCount: 0
     property bool busy: false
+    // the key that comes here ("Ctrl+1"), shown in the tooltip
+    property string shortcut
+
+    QQC2.ToolTip.visible: hovered && shortcut !== ""
+    QQC2.ToolTip.delay: 600
+    QQC2.ToolTip.text: i18nc("@info:tooltip a place and its keyboard shortcut", "%1 (%2)", text, shortcut)
 
     implicitWidth: Theme.railItemWidth
     implicitHeight: Theme.railItemHeight

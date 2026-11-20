@@ -6,6 +6,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.raye.store
+import "ui/keys.js" as KeyNav
 
 Item {
     id: listPage
@@ -38,6 +39,8 @@ Item {
     onSpecChanged: apply()
     onKindChanged: apply()
     function toTop() { grid.positionViewAtBeginning() }
+    // what the window's keys scroll (Page Down, Space...)
+    readonly property alias scroller: grid
     // new rows, or the same in another order, right after a search or a
     // sort: start from the top. An install finishing later moves nothing.
     property double changedAt: 0
@@ -116,7 +119,26 @@ Item {
 
     GridView {
         id: grid
-        WheelScroll { target: grid }
+        // the arrows go from card to card (below), not to the wheel's scroll
+        WheelScroll { target: grid; keyNavigationEnabled: false }
+        keyNavigationEnabled: false
+        // the card that has the keyboard focus, -1 for none
+        property int focusIndex: -1
+        Keys.onPressed: event => {
+            if (event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier | Qt.ShiftModifier))
+                return
+            if ([Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down].indexOf(event.key) < 0)
+                return
+            const next = KeyNav.gridMove(event.key, grid.focusIndex, grid.count, listPage.columns)
+            if (next < 0)
+                return
+            event.accepted = true
+            // the card comes into view, then takes the focus
+            grid.positionViewAtIndex(next, GridView.Contain)
+            const cell = grid.itemAtIndex(next)
+            if (cell)
+                cell.card.forceActiveFocus(Qt.TabFocusReason)
+        }
         // 8 px either side so the cards' shadows are not cut
         width: listPage.usable + Theme.rowSpacing + 16
         y: header.height
@@ -145,7 +167,10 @@ Item {
             readonly property var app: model.modelData !== undefined ? model.modelData : model
             width: grid.cellWidth
             height: grid.cellHeight
+            property alias card: card
             AppCard {
+                id: card
+                onActiveFocusChanged: if (activeFocus) grid.focusIndex = cell.index
                 x: 8
                 y: 4
                 width: grid.cellWidth - Theme.rowSpacing

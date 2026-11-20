@@ -17,6 +17,14 @@ raye-store (1.0~beta2) resolute; urgency=medium
     again only when something it is made from has changed.
   * The Library lists only the apps you installed: Raye's own parts,
     Synaptic and KDE's settings and helper tools stay out of it.
+  * Every Store page shows its scroll bar, and scrolls with the arrows,
+    Page Up and Page Down, Home, End and Space; in a grid the arrows move
+    from app to app. A search box or a list keeps its own keys.
+  * Keyboard shortcuts as in a Windows app: Ctrl+F or / to search, Esc,
+    Alt+Left and Backspace to go back, F5 to refresh, Ctrl+1 to Ctrl+4
+    for Home, Apps, Games and Library, Ctrl+, for settings, Ctrl+W to
+    close; F1 or Ctrl+/ lists them. Backspace went back again: it was
+    bound twice and did nothing.
   * Get updates in the Library checks and installs right away, with its
     progress: every app with an update, then the components they share
     (runtimes, the graphics driver's extensions), also when only those

@@ -5,6 +5,7 @@ import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.raye.store
 import org.raye.store.data
+import "ui/keys.js" as KeyNav
 
 Kirigami.ApplicationWindow {
     id: window
@@ -148,15 +149,28 @@ Kirigami.ApplicationWindow {
         }
     }
 
-    Shortcut { sequences: ["Ctrl+F", "Ctrl+E"]; onActivated: searchBox.forceActiveFocus() }
-    Shortcut { sequences: [StandardKey.Back, "Alt+Left"]; onActivated: window.back() }
-    Shortcut { sequences: [StandardKey.Forward, "Alt+Right"]; onActivated: window.forward() }
-    Shortcut {
-        sequence: "Backspace"
-        // only when no field is taking the key
-        enabled: !(window.activeFocusItem && window.activeFocusItem.cursorPosition !== undefined)
-        onActivated: window.back()
+    // the keys, as in a Windows app; ShortcutsDialog lists them (F1)
+    readonly property bool typing: !!window.activeFocusItem && window.activeFocusItem.cursorPosition !== undefined
+    function refresh() {
+        catalog.refreshInstalled()
+        installer.checkUpdates()
+        installer.refreshCatalog()
     }
+    Shortcut { sequences: ["Ctrl+F", "Ctrl+E"]; onActivated: searchBox.forceActiveFocus() }
+    Shortcut { sequence: "/"; enabled: !window.typing; onActivated: searchBox.forceActiveFocus() }
+    Shortcut { sequences: ["Alt+Left", "Back"]; onActivated: window.back() }
+    Shortcut { sequences: ["Alt+Right", "Forward"]; onActivated: window.forward() }
+    // only when no field is taking the key
+    Shortcut { sequence: "Backspace"; enabled: !window.typing; onActivated: window.back() }
+    Shortcut { sequences: ["F5", "Ctrl+R"]; onActivated: window.refresh() }
+    Shortcut { sequence: "Ctrl+1"; onActivated: window.goSection("home") }
+    Shortcut { sequence: "Ctrl+2"; onActivated: window.goSection("apps") }
+    Shortcut { sequence: "Ctrl+3"; onActivated: window.goSection("games") }
+    Shortcut { sequence: "Ctrl+4"; onActivated: window.goSection("library") }
+    Shortcut { sequence: "Ctrl+,"; onActivated: window.goSection("settings") }
+    Shortcut { sequences: ["F1", "Ctrl+/"]; onActivated: shortcutsDialog.open() }
+    Shortcut { sequences: ["Ctrl+W", "Ctrl+Q"]; onActivated: window.close() }
+    ShortcutsDialog { id: shortcutsDialog }
     // the mouse's back and forward buttons, anywhere in the window
     MouseArea {
         anchors.fill: parent
@@ -170,7 +184,35 @@ Kirigami.ApplicationWindow {
                 window.forward()
         }
     }
-    Shortcut { sequence: "Backspace"; enabled: !searchBox.activeFocus; onActivated: window.back() }
+
+    // the arrows, Page Up and Down, Home, End and Space scroll the page
+    // shown, unless what has the focus takes them (a text field, a list)
+    function scrollKey(event) {
+        const page = pages.current()
+        if (!page)
+            return
+        const flick = page.scroller !== undefined ? page.scroller : page
+        if (!flick || flick.contentY === undefined)
+            return
+        const focus = window.activeFocusItem
+        const inList = !!focus && focus !== flick && focus.currentIndex !== undefined && focus.count !== undefined
+        if (!KeyNav.pageTakes(event.key, window.typing, inList))
+            return
+        const to = KeyNav.scrollTo(event.key, event.modifiers, flick.contentY, flick.height, flick.contentHeight, flick.originY)
+        if (to === null)
+            return
+        event.accepted = true
+        keyScroll.stop()
+        keyScroll.target = flick
+        keyScroll.to = to
+        keyScroll.start()
+    }
+    NumberAnimation {
+        id: keyScroll
+        property: "contentY"
+        duration: Theme.durationFast
+        easing.type: Easing.OutCubic
+    }
 
     // typing offers apps under the box; Enter or "See all" searches
     SearchSuggestions {
@@ -188,6 +230,9 @@ Kirigami.ApplicationWindow {
     RowLayout {
         anchors.fill: parent
         spacing: 0
+        // keys no one took come here
+        focus: true
+        Keys.onPressed: event => window.scrollKey(event)
 
         // the navigation rail, like the store people know
         Item {
@@ -211,6 +256,7 @@ Kirigami.ApplicationWindow {
                     text: i18n("Home")
                     glyph: "home"
                     selected: window.section === "home"
+                    shortcut: "Ctrl+1"
                     onClicked: window.goSection("home")
                 }
                 NavItem {
@@ -219,6 +265,7 @@ Kirigami.ApplicationWindow {
                     text: i18nc("@title navigation", "Apps")
                     glyph: "apps"
                     selected: window.section === "apps"
+                    shortcut: "Ctrl+2"
                     onClicked: window.goSection("apps")
                 }
                 NavItem {
@@ -227,6 +274,7 @@ Kirigami.ApplicationWindow {
                     text: i18nc("@title navigation", "Games")
                     glyph: "games"
                     selected: window.section === "games"
+                    shortcut: "Ctrl+3"
                     onClicked: window.goSection("games")
                 }
                 Item { Layout.fillHeight: true }
@@ -239,6 +287,7 @@ Kirigami.ApplicationWindow {
                     badgeCount: installer.flatpakUpdates
                     busy: installer.busy
                     Accessible.description: installer.flatpakUpdates > 0 ? i18np("One update", "%1 updates", installer.flatpakUpdates) : ""
+                    shortcut: "Ctrl+4"
                     onClicked: window.goSection("library")
                 }
                 NavItem {
@@ -247,6 +296,7 @@ Kirigami.ApplicationWindow {
                     text: i18nc("@title navigation", "Settings")
                     glyph: "settings"
                     selected: window.section === "settings"
+                    shortcut: "Ctrl+,"
                     onClicked: window.goSection("settings")
                 }
             }
@@ -288,6 +338,9 @@ Kirigami.ApplicationWindow {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: window.history.length > 0
                     Accessible.name: i18n("Back")
+                    QQC2.ToolTip.visible: hovered
+                    QQC2.ToolTip.delay: 600
+                    QQC2.ToolTip.text: i18nc("@info:tooltip", "Back (Alt+Left)")
                     onClicked: window.back()
                 }
                 SearchBox {
@@ -296,6 +349,9 @@ Kirigami.ApplicationWindow {
                     anchors.centerIn: parent
                     anchors.horizontalCenterOffset: -Theme.railWidth / 2
                     suggestionsShown: suggest.shown
+                    QQC2.ToolTip.visible: hovered && !activeFocus
+                    QQC2.ToolTip.delay: 800
+                    QQC2.ToolTip.text: i18nc("@info:tooltip", "Search (Ctrl+F)")
                     onTextEdited: {
                         suggest.type(text)
                         if (text.trim() === "" && window.route.page === "search")
@@ -304,6 +360,10 @@ Kirigami.ApplicationWindow {
                     onSearchNow: { suggest.current = -1; suggest.accept() }
                     onAccepted: suggest.accept()
                     onDismissSuggestions: suggest.dismiss()
+                    // Esc: the search box emptied leaves the results, and
+                    // once empty hands the keys back to the page
+                    onCleared: if (window.route.page === "search") window.back()
+                    onLeave: pages.current().forceActiveFocus()
                     onActiveFocusChanged: if (!activeFocus) suggest.dismiss()
                     Keys.onDownPressed: {
                         if (suggest.shown)
