@@ -47,6 +47,8 @@ Rectangle {
         Text {
             Layout.fillWidth: true
             text: bar.text
+            // words from a .deb (its name) can be in it: never markup
+            textFormat: Text.PlainText
             font: Theme.body
             color: Theme.text
             wrapMode: Text.Wrap

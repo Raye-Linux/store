@@ -33,6 +33,11 @@ class DebFile : public QObject
     Q_PROPERTY(QString errorText READ errorText NOTIFY changed)
     Q_PROPERTY(QString details READ details NOTIFY changed)
     Q_PROPERTY(bool canOpen READ canOpen NOTIFY changed)
+    // packages installing it removes because it takes their place
+    Q_PROPERTY(QStringList replaces READ replaces NOTIFY changed)
+    // the Store's own copy of the same app, when it has one it advises
+    Q_PROPERTY(QString storeAppId READ storeAppId NOTIFY changed)
+    Q_PROPERTY(QString replacesText READ replacesText NOTIFY changed)
 public:
     enum State { Reading, Ready, Installing, Done, Failed };
     Q_ENUM(State)
@@ -64,12 +69,20 @@ public:
     QString details() const { return m_details; }
     bool canOpen() const { return !m_launcher.isEmpty(); }
     QString launcher() const { return m_launcher; }
+    QStringList replaces() const { return m_replaces; }
+    QString storeAppId() const { return m_storeAppId; }
 
     // reads the file; Ready or Failed follows
     Q_INVOKABLE void load();
     Q_INVOKABLE void install();
     // starts the app it installed, the way the Start menu does
     Q_INVOKABLE bool open();
+    // opens the Store on storeAppId's page
+    Q_INVOKABLE bool openInStore();
+    // "This replaces steam-devices." in plain words, or nothing
+    QString replacesText() const;
+    // the Store app the Store advises over a .deb of this package
+    static QString storeAppFor(const QString &package);
 
     // plain words for a reason the helper gave; what is the package it
     // is about, or the processor type for "architecture"
@@ -116,4 +129,11 @@ private:
     QString m_errorText;
     QString m_details;
     QString m_launcher;
+    QStringList m_replaces;
+    QString m_storeAppId;
+    QStringList m_storeCommand{QStringLiteral("raye-store"), QStringLiteral("--open")};
+
+public:
+    // the tests put their own command before the app id
+    void setStoreCommand(const QStringList &command) { m_storeCommand = command; }
 };

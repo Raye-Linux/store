@@ -298,7 +298,7 @@ class FakeApt:
 
 class InstallFile(unittest.TestCase):
     def run_install(self, tmp, apt, deb=None, architectures=("amd64",), launchers=(), expected=None,
-                    protected=lambda package: False):
+                    protected=lambda package: False, plan=None):
         cache = os.path.join(tmp, "cache")
         said = []
         deb = deb or make_deb(tmp)
@@ -310,7 +310,9 @@ class InstallFile(unittest.TestCase):
         code = rse.install_file(deb, expected, say=said.append, apt=apt, cache=cache,
                                 architectures=lambda: list(architectures),
                                 opener=rse.open_regular, launchers=lambda p: list(launchers),
-                                clean=lambda: said.append("clean"), protected=protected)
+                                clean=lambda: said.append("clean"), protected=protected,
+                                plan=plan or (lambda copy: (0, "Inst hello-world (1:2.4-1 local-deb [amd64])\n")),
+                                hook="/usr/libexec/raye-store-extra")
         return code, said, cache
 
     def test_installs_a_copy_and_says_how_far(self):
@@ -410,6 +412,121 @@ class InstallFile(unittest.TestCase):
             self.assertIn("reason badpath", said)
 
 
+STEAM = dict(CONTROL, Package="steam-launcher", Version="1:1.0.0.87",
+             Conflicts="steam-devices, steam-installer", Breaks="steam64",
+             Replaces="steam, steam-devices, steam-installer, steam64",
+             Provides="steam, steam-devices, steam-installer")
+STEAM_PLAN = ("NOTE: This is only a simulation!\n"
+              "Inst lsof (4.99.4 Ubuntu:26.04/resolute [amd64])\n"
+              "Remv steam-devices [1:1.0.0.85~ds-2build1] [raye-gaming:amd64 ]\n"
+              "Inst steam-launcher (1:1.0.0.87 local-deb [amd64])\n"
+              "Conf steam-launcher (1:1.0.0.87 local-deb [amd64])\n")
+
+
+class Swaps(unittest.TestCase):
+    """A file that takes the place of a package (Valve's Steam launcher
+    and steam-devices): apt may remove that one, never a part of Raye."""
+
+    def test_relation_names(self):
+        self.assertEqual(rse.relation_names("steam-devices (<< 2), aa | bb:any, ,Bad Name"),
+                         ["steam-devices", "aa", "bb"])
+        self.assertEqual(rse.relation_names(""), [])
+
+    def test_swaps_need_a_clash_and_a_replace(self):
+        self.assertEqual(rse.swaps_of(STEAM), ["steam-devices", "steam-installer", "steam64"])
+        # replacing files of a package is not taking its place
+        self.assertEqual(rse.swaps_of({"Package": "x", "Replaces": "kate"}), [])
+        self.assertEqual(rse.swaps_of({"Package": "x", "Conflicts": "kate"}), [])
+        self.assertEqual(rse.swaps_of({"Package": "x", "Breaks": "kate (<< 2)", "Provides": "kate"}), ["kate"])
+
+    def test_read_deb_says_its_swaps(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with open(make_deb(tmp, control=STEAM), "rb") as f:
+                self.assertEqual(rse.read_deb(f, data=False)["swaps"], ["steam-devices", "steam-installer", "steam64"])
+
+    def test_removals_in_a_simulation(self):
+        self.assertEqual(rse.removals_in(STEAM_PLAN), ["steam-devices"])
+        self.assertEqual(rse.removals_in("Remv libfoo:i386 [1]\nRemv libfoo:amd64 [1]\nInst x (1)\n"), ["libfoo"])
+        self.assertEqual(rse.removals_in("The following packages will be REMOVED:\n  steam-devices\n"), [])
+
+    def test_judge(self):
+        raye = lambda p: p.startswith("raye-")
+        self.assertIsNone(rse.judge_removals([], [], raye))
+        self.assertIsNone(rse.judge_removals(["steam-devices"], ["steam-devices"], raye))
+        self.assertEqual(rse.judge_removals(["steam-devices", "raye-gaming"], ["steam-devices"], raye),
+                         ("removes", "raye-gaming"))
+        self.assertEqual(rse.judge_removals(["kate"], ["steam-devices"], raye), ("conflict", "kate"))
+        # even one it names: a part of Raye stays
+        self.assertEqual(rse.judge_removals(["raye-store"], ["raye-store"], raye), ("removes", "raye-store"))
+
+    def test_guard_hook(self):
+        def feed(*lines):
+            return io.StringIO("VERSION 2\nAPT::Architecture=amd64\nDir::Bin::dpkg=/usr/bin/dpkg\n\n"
+                               + "".join(line + "\n" for line in lines))
+        raye = lambda p: p.startswith("raye-")
+        ok = feed("lsof - < 4.99.4 /var/cache/apt/archives/lsof.deb",
+                  "steam-devices 1:1.0.0.85~ds-2build1 > - **REMOVE**",
+                  "steam-launcher - < 1:1.0.0.87 /var/cache/raye-store/file-x/package.deb")
+        err = io.StringIO()
+        self.assertEqual(rse.guard_removals({"steam-devices"}, stdin=ok, err=err, protected=raye), 0)
+        self.assertEqual(err.getvalue(), "")
+        more = feed("steam-devices 1 > - **REMOVE**", "kate 2 > - **REMOVE**")
+        self.assertEqual(rse.guard_removals({"steam-devices"}, stdin=more, err=err, protected=raye), 1)
+        self.assertIn("RAYE-REFUSED conflict kate", err.getvalue())
+        err = io.StringIO()
+        raye_gone = feed("raye-gaming:amd64 1.0 > - **REMOVE**")
+        self.assertEqual(rse.guard_removals({"raye-gaming"}, stdin=raye_gone, err=err, protected=raye), 1)
+        self.assertIn("RAYE-REFUSED removes raye-gaming", err.getvalue())
+        # the configuration part is never read as packages
+        self.assertEqual(rse.guard_removals(set(), stdin=feed(), err=io.StringIO(), protected=raye), 0)
+        self.assertEqual(rse.classify("RAYE-REFUSED removes raye-gaming\nE: Failure running script x"),
+                         ("removes", "raye-gaming"))
+        self.assertEqual(rse.main(["x", "guard-removals", "Bad Name"]), 2)
+
+
+class InstallSwap(InstallFile):
+    def test_replaced_package_is_removed_with_the_hook(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            apt = FakeApt()
+            code, said, _ = self.run_install(tmp, apt, deb=make_deb(tmp, control=STEAM),
+                                             plan=lambda copy: (0, STEAM_PLAN))
+            self.assertEqual(code, 0)
+            cmd = apt.commands[0]
+            self.assertNotIn("--no-remove", cmd)
+            self.assertIn("steam-devices-", cmd)
+            self.assertIn("DPkg::Pre-Install-Pkgs::=/usr/libexec/raye-store-extra guard-removals steam-devices", cmd)
+            self.assertIn("DPkg::Tools::Options::/usr/libexec/raye-store-extra::Version=2", cmd)
+            self.assertTrue(cmd[-1].endswith("/package.deb"))
+            self.assertIn("replaces steam-devices", said)
+
+    def test_raye_part_is_never_removed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            apt = FakeApt()
+            plan = STEAM_PLAN + "Remv raye-gaming [1.0]\n"
+            code, said, _ = self.run_install(tmp, apt, deb=make_deb(tmp, control=STEAM), plan=lambda c: (0, plan),
+                                             protected=lambda p: p.startswith("raye-"))
+            self.assertEqual(code, 1)
+            self.assertEqual(apt.commands, [])
+            self.assertIn("reason removes raye-gaming", said)
+
+    def test_other_removal_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            apt = FakeApt()
+            code, said, _ = self.run_install(tmp, apt, plan=lambda c: (0, "Remv kate [25.12]\nInst hello-world (1)\n"))
+            self.assertEqual(code, 1)
+            self.assertEqual(apt.commands, [])
+            self.assertIn("reason conflict kate", said)
+
+    def test_failed_plan_is_explained(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            apt = FakeApt()
+            code, said, _ = self.run_install(
+                tmp, apt, plan=lambda c: (100, " hello-world : Depends: libfoo3 but it is not installable\n"))
+            self.assertEqual(code, 1)
+            self.assertEqual(apt.commands, [])
+            self.assertIn("reason dependencies libfoo3", said)
+
+
 class Info(unittest.TestCase):
     def test_info_json(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -417,7 +534,8 @@ class Info(unittest.TestCase):
             out = io.StringIO()
             code = rse.info(path, tmp, out=out, architectures=lambda: ["amd64"],
                             installed=lambda pkg: "1:2.3-1", compare=lambda a, b: 1,
-                            launchers=lambda pkg: ["/usr/share/applications/hello.desktop"])
+                            launchers=lambda pkg: ["/usr/share/applications/hello.desktop"],
+                            plan=lambda p: (0, "Inst hello-world (1:2.4-1 local-deb [amd64])\n"))
             self.assertEqual(code, 0)
             data = json.loads(out.getvalue())
             self.assertTrue(data["ok"])
@@ -428,6 +546,24 @@ class Info(unittest.TestCase):
             self.assertEqual(data["fileSize"], os.path.getsize(path))
             self.assertEqual(data["launchers"], ["/usr/share/applications/hello.desktop"])
             self.assertEqual(data["sha256"], hashlib.sha256(pathlib.Path(path).read_bytes()).hexdigest())
+
+    def test_info_says_what_it_replaces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = make_deb(tmp, control=STEAM)
+            for plan, removes, blocked in (
+                    (STEAM_PLAN, ["steam-devices"], None),
+                    (STEAM_PLAN + "Remv raye-gaming [1]\n", ["steam-devices", "raye-gaming"],
+                     {"reason": "removes", "what": "raye-gaming"}),
+                    ("E: whatever", [], None)):
+                out = io.StringIO()
+                rse.info(path, tmp, out=out, architectures=lambda: ["amd64"], installed=lambda pkg: "",
+                         plan=lambda p, plan=plan: (0 if plan.startswith("NOTE") else 100, plan),
+                         protected=lambda p: p.startswith("raye-"))
+                data = json.loads(out.getvalue())
+                with self.subTest(plan=plan[-30:]):
+                    self.assertEqual(data["swaps"], ["steam-devices", "steam-installer", "steam64"])
+                    self.assertEqual(data["removes"], removes)
+                    self.assertEqual(data["blocked"], blocked)
 
     def test_info_problem(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -460,6 +596,15 @@ class Window(unittest.TestCase):
         self.assertEqual(len(shown), 4)
         for block in shown:
             self.assertIn("textFormat: Text.PlainText", block.split("}")[0])
+
+    def test_info_bars_are_never_markup(self):
+        # the Steam advice carries the name the .deb gives itself
+        bar = (HELPER.parent / "qml" / "ui" / "InfoBar.qml").read_text(encoding="utf-8")
+        block = bar.split("text: bar.text", 1)[1].split("}", 1)[0]
+        self.assertIn("textFormat: Text.PlainText", block)
+        qml = (HELPER.parent / "qml" / "DebInstall.qml").read_text(encoding="utf-8")
+        self.assertIn("deb.replacesText", qml)
+        self.assertIn("deb.openInStore()", qml)
 
 
 if __name__ == "__main__":

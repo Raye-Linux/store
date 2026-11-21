@@ -155,6 +155,32 @@ Window {
             Layout.topMargin: Theme.s7
             spacing: Theme.s3
 
+            // the Store has its own copy, set up for Raye: advised, never forced
+            InfoBar {
+                Layout.fillWidth: true
+                visible: deb.storeAppId !== "" && (window.canInstall || deb.state === failed)
+                severity: "info"
+                closable: false
+                text: i18n("%1 is also in the Store, and that's the one we recommend: it updates by itself and is set up for Raye.", deb.name)
+                Button {
+                    subtle: true
+                    text: i18n("Get it from the Store")
+                    onClicked: {
+                        if (deb.openInStore())
+                            Qt.quit()
+                    }
+                }
+            }
+
+            // what installing it takes away, in plain words, before Install
+            InfoBar {
+                Layout.fillWidth: true
+                visible: window.canInstall && deb.replaces.length > 0
+                severity: "info"
+                closable: false
+                text: deb.replacesText
+            }
+
             InfoBar {
                 Layout.fillWidth: true
                 visible: window.canInstall

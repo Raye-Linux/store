@@ -1,3 +1,17 @@
+raye-store (1.0~beta2.1) resolute; urgency=medium
+
+  * App Installer: a .deb that takes the place of a package installs. Valve's
+    Steam .deb removes steam-devices (it brings its own copy) and the window
+    says so before Install; before, it was refused with "This app can't be
+    installed alongside an app that's already on this PC". apt is asked first
+    what it would remove, and a check just before dpkg stops anything else.
+    A file that would remove a part of Raye is still refused, now before the
+    password, and says which part.
+  * App Installer: Steam's .deb shows that the Store has Steam too and that
+    we recommend that one, with a button to it; the .deb still installs.
+
+ -- techoraye <190692880+techoraye@users.noreply.github.com>  Sat, 21 Nov 2026 12:00:00 +0000
+
 raye-store (1.0~beta2) resolute; urgency=medium
 
   * Affinity and TikTok LIVE Studio in the Store; apps whose maker hands

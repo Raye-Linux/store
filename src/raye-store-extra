@@ -7,6 +7,7 @@ installs a .deb file someone opened.
     raye-store-extra remove <package>
     raye-store-extra install-file </path/to/file.deb> <sha256>
     raye-store-extra info </path/to/file.deb> <folder for its icon>
+    raye-store-extra guard-removals <package>...   (apt's hook, see below)
     raye-store-extra repair
     raye-store-extra clean
 
@@ -20,8 +21,12 @@ password (its own polkit action, org.raye.store.install-file). The file is
 opened as the person who asked, so it is one they can read; it is copied
 into a folder of root's before anything looks at it, so it cannot change
 under apt, and the copy must have the SHA-256 the window read. Raye's own
-packages and essential ones are never replaced this way. apt installs the copy and fetches what it depends on, and never
-removes a package to make room for it.
+packages and essential ones are never replaced this way. apt installs the copy and fetches what it depends on. The
+only packages it may remove are the ones the file says it takes the place
+of (in Conflicts or Breaks, and in Replaces or Provides: Valve's Steam
+launcher brings its own steam-devices, for one), never one of Raye's own or
+an essential one; apt is first asked what it would do, and a hook it runs
+just before dpkg checks the removals are still those.
 
 repair (the Store's settings) finishes what dpkg left half done, lets apt
 install what is missing and drops partial downloads; clean empties apt's
@@ -330,6 +335,26 @@ def _control_fields(text):
     return fields
 
 
+def relation_names(value):
+    """The package names of a relation field, versions and architectures
+    left out: "steam-devices (<< 2), a | b:any" -> ["steam-devices", "a", "b"]."""
+    names = []
+    for part in re.split(r"[,|]", value or ""):
+        name = part.strip().split(" ", 1)[0].split("(", 1)[0].split(":", 1)[0].strip()
+        if PACKAGE.fullmatch(name) and name not in names:
+            names.append(name)
+    return names
+
+
+def swaps_of(fields):
+    """The packages this one takes the place of: it conflicts with them
+    (or breaks them) and replaces or provides them, so apt has to remove
+    them for it, and what they did is in it."""
+    clashes = relation_names(fields.get("Conflicts", "")) + relation_names(fields.get("Breaks", ""))
+    taken = set(relation_names(fields.get("Replaces", ""))) | set(relation_names(fields.get("Provides", "")))
+    return sorted({name for name in clashes if name in taken} - {fields.get("Package", "")})
+
+
 def parse_desktop(text):
     """The keys of the [Desktop Entry] group of a .desktop file."""
     entry, inside = {}, False
@@ -414,6 +439,7 @@ def read_deb(f, data=True, icon_dir=None):
         "names": {},
         "desktop": "",
         "icon": "",
+        "swaps": swaps_of(fields),
     }
     if not (PACKAGE.fullmatch(deb["package"]) and VERSION.fullmatch(deb["version"])
             and ARCH.fullmatch(deb["architecture"])):
@@ -495,8 +521,10 @@ def compare_versions(a, b):
 
 
 def info(path, icon_dir, out=sys.stdout, architectures=machine_architectures,
-         installed=installed_version, compare=compare_versions, launchers=None):
+         installed=installed_version, compare=compare_versions, launchers=None,
+         plan=None, protected=None):
     """Prints what the install window shows about a file, as JSON."""
+    plan = plan or simulate
     try:
         path = checked_path(path)
         if not os.path.isabs(icon_dir) or not os.path.isdir(icon_dir):
@@ -515,7 +543,16 @@ def info(path, icon_dir, out=sys.stdout, architectures=machine_architectures,
     launchers = launchers or launchers_of
     deb.update(ok=True, fileSize=size, sha256=digest.hexdigest(), archOk=arch_ok(deb["architecture"], architectures()),
                installed=current, newer=compare(deb["version"], current) if current else None,
-               launchers=launchers(deb["package"]) if current else [])
+               launchers=launchers(deb["package"]) if current else [], removes=[], blocked=None)
+    # what installing it would take away, shown before the password; apt
+    # failing here for another reason is left to the install, which says it
+    if deb["archOk"]:
+        code, text = plan(path)
+        if code == 0:
+            deb["removes"] = removals_in(text)
+            refused = judge_removals(deb["removes"], deb["swaps"], protected)
+            if refused:
+                deb["blocked"] = {"reason": refused[0], "what": refused[1]}
     out.write(json.dumps(deb) + "\n")
     return 0
 
@@ -523,6 +560,9 @@ def info(path, icon_dir, out=sys.stdout, architectures=machine_architectures,
 def classify(text):
     """apt's own words, as (reason, what): the package it is about when
     there is one."""
+    refused = re.search(r"RAYE-REFUSED (removes|conflict) ([a-z0-9][a-z0-9+.-]*)", text)
+    if refused:
+        return refused.group(1), refused.group(2)
     if re.search(r"Could not get lock|Unable to acquire the dpkg frontend lock|Unable to lock", text):
         return "busy", ""
     if "were downgraded" in text:
@@ -542,6 +582,65 @@ def classify(text):
     if re.search(r"returned an error code|error processing package", text):
         return "setup", ""
     return "unknown", ""
+
+
+def removals_in(text):
+    """The packages apt's simulation (apt-get -s) would remove."""
+    found = []
+    for m in re.finditer(r"^Remv ([a-z0-9][a-z0-9+.-]*)(?::[a-z0-9-]+)? ", text, re.M):
+        if m.group(1) not in found:
+            found.append(m.group(1))
+    return found
+
+
+def simulate(path):
+    """What apt would do to install the file, without doing it: (exit
+    code, its words). Runs as anyone; takes no lock."""
+    env = dict(os.environ, DEBIAN_FRONTEND="noninteractive")
+    try:
+        r = subprocess.run(["apt-get", "install", "-s", "-q", path], env=env, stdin=subprocess.DEVNULL,
+                           capture_output=True, text=True, timeout=180)
+    except (OSError, subprocess.TimeoutExpired):
+        return 1, ""
+    return r.returncode, r.stdout + r.stderr
+
+
+def judge_removals(removed, swaps, protected=None):
+    """None when apt may remove all of them for the file, else the reason
+    and the package: a part of Raye or an essential one ("removes"), or one
+    the file does not say it takes the place of ("conflict")."""
+    protected = protected or protected_package
+    for package in removed:
+        if protected(package):
+            return "removes", package
+    for package in removed:
+        if package not in swaps:
+            return "conflict", package
+    return None
+
+
+def guard_removals(allowed, stdin=sys.stdin, err=sys.stderr, protected=None):
+    """apt's DPkg::Pre-Install-Pkgs hook (protocol version 2): what dpkg
+    is about to remove must be what was checked. A non-zero exit stops apt
+    before dpkg touches anything."""
+    protected = protected or protected_package
+    removed, header = [], True
+    for line in stdin:
+        line = line.rstrip("\n")
+        if header:
+            # "VERSION 2", the configuration, then an empty line
+            header = line != ""
+            continue
+        fields = line.split()
+        if len(fields) >= 5 and fields[-1] == "**REMOVE**":
+            removed.append(fields[0].split(":", 1)[0])
+    for package in removed:
+        if package not in allowed or protected(package):
+            word = "removes" if protected(package) else "conflict"
+            err.write(f"RAYE-REFUSED {word} {package}\n")
+            err.flush()
+            return 1
+    return 0
 
 
 def status_line(line):
@@ -640,7 +739,8 @@ def drop_stale_copies(cache, age=24 * 3600):
 
 
 def install_file(path, expected, say=say, apt=run_apt, cache=CACHE, architectures=machine_architectures,
-                 opener=open_as_caller, launchers=launchers_of, clean=apt_clean, protected=protected_package):
+                 opener=open_as_caller, launchers=launchers_of, clean=apt_clean, protected=protected_package,
+                 plan=None, hook=None):
     """Installs the file the window showed: expected is the SHA-256 the
     window read, so a file swapped while the password was typed is refused."""
     try:
@@ -687,13 +787,38 @@ def install_file(path, expected, say=say, apt=run_apt, cache=CACHE, architecture
         say(f"package {deb['package']}")
         say(f"version {deb['version']}")
 
+        # apt says first what it would remove: only what the file takes
+        # the place of, and never a part of Raye
+        code, output = (plan or simulate)(copy)
+        if code != 0:
+            reason, what = classify(output)
+            say(f"reason {reason} {what}".rstrip())
+            return 1
+        removals = removals_in(output)
+        refused = judge_removals(removals, deb["swaps"], protected)
+        if refused:
+            say(f"reason {refused[0]} {refused[1]}")
+            return 1
+        for package in removals:
+            say(f"replaces {package}")
+
         read_end, write_end = os.pipe()
         follower = threading.Thread(target=_follow_status, args=(read_end, say), daemon=True)
         follower.start()
         try:
-            cmd = ["apt-get", "install", "-y", "-q", "--no-remove",
+            cmd = ["apt-get", "install", "-y", "-q",
                    "-o", f"APT::Status-Fd={write_end}", "-o", "DPkg::Lock::Timeout=300",
-                   "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", copy]
+                   "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold"]
+            if removals:
+                # dpkg is about to run: the hook stops it if the removals
+                # are not the ones checked above (the system changed since)
+                hook = hook or os.path.abspath(__file__)
+                cmd += ["-o", f"DPkg::Pre-Install-Pkgs::={hook} guard-removals {' '.join(removals)}",
+                        "-o", f"DPkg::Tools::Options::{hook}::Version=2"]
+                cmd += [f"{package}-" for package in removals]
+            else:
+                cmd.append("--no-remove")
+            cmd.append(copy)
             code, output = apt(cmd, write_end)
         finally:
             os.close(write_end)
@@ -752,6 +877,12 @@ def main(argv):
             print("usage: pkexec raye-store-extra install-file <file.deb> <sha256>", file=sys.stderr)
             return 2
         return install_file(argv[2], argv[3])
+    if len(argv) >= 2 and argv[1] == "guard-removals":
+        # apt runs it, as root, just before dpkg (install-file sets it up)
+        if os.geteuid() != 0 or not all(PACKAGE.fullmatch(p) for p in argv[2:]):
+            print("usage: raye-store-extra guard-removals <package>... (apt runs it)", file=sys.stderr)
+            return 2
+        return guard_removals(set(argv[2:]))
     if len(argv) >= 2 and argv[1] == "info":
         # never as root for someone else
         if len(argv) != 4 or (os.geteuid() == 0 and "PKEXEC_UID" in os.environ):

@@ -2037,3 +2037,23 @@ msgstr "Retour (Alt+Gauche)"
 msgctxt "@info:tooltip"
 msgid "Search (Ctrl+F)"
 msgstr "Rechercher (Ctrl+F)"
+
+#: src/debfile.cpp
+msgid "Installing it removes %1 from this PC: this app brings its own."
+msgstr "L'installer retire %1 de ce PC : cette application apporte sa propre version."
+
+#: src/debfile.cpp
+msgid "Installing this app would remove a part of Raye, so it can't be installed this way."
+msgstr "Installer cette application retirerait une partie de Raye : elle ne peut donc pas être installée de cette façon."
+
+#: src/debfile.cpp
+msgid "Installing this app would remove %1, a part of Raye, so it can't be installed this way."
+msgstr "Installer cette application retirerait %1, une partie de Raye : elle ne peut donc pas être installée de cette façon."
+
+#: src/qml/DebInstall.qml
+msgid "%1 is also in the Store, and that's the one we recommend: it updates by itself and is set up for Raye."
+msgstr "%1 est aussi dans le Store, et c'est celle que nous conseillons : elle se met à jour toute seule et elle est prête pour Raye."
+
+#: src/qml/DebInstall.qml
+msgid "Get it from the Store"
+msgstr "L'obtenir dans le Store"

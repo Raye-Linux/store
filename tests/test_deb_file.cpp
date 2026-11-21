@@ -233,6 +233,64 @@ private Q_SLOTS:
         QVERIFY(args().isEmpty());
     }
 
+    // Valve's Steam launcher: it takes the place of steam-devices
+    QStringList steamInfo(const QString &extra)
+    {
+        QString json = infoJson.arg(QString(), QStringLiteral("true"), QString(), QStringLiteral("null"), QStringLiteral("[]"), sha)
+                           .replace(QStringLiteral("\"hello-world\""), QStringLiteral("\"steam-launcher\""));
+        json.chop(1);
+        return script(QStringLiteral("info"), json + QStringLiteral(", ") + extra + QStringLiteral("}"));
+    }
+
+    void saysWhatItReplaces()
+    {
+        DebFile deb(QStringLiteral("/tmp/steam.deb"), steamInfo(QStringLiteral(R"("removes": ["steam-devices"], "blocked": null)")));
+        deb.load();
+        waitFor(deb, DebFile::Ready);
+        QCOMPARE(deb.replaces(), QStringList{QStringLiteral("steam-devices")});
+        QVERIFY(deb.replacesText().contains(QStringLiteral("steam-devices")));
+        // the Store's Steam is advised, the file still installs
+        QCOMPARE(deb.storeAppId(), QStringLiteral("com.valvesoftware.Steam"));
+        QCOMPARE(deb.relation(), int(DebFile::NotInstalled));
+
+        DebFile plain(QStringLiteral("/tmp/hello.deb"), info());
+        plain.load();
+        waitFor(plain, DebFile::Ready);
+        QVERIFY(plain.replaces().isEmpty());
+        QVERIFY(plain.replacesText().isEmpty());
+        QVERIFY(plain.storeAppId().isEmpty());
+        QVERIFY(!plain.openInStore());
+    }
+
+    void opensTheStoreCopy()
+    {
+        DebFile deb(QStringLiteral("/tmp/steam.deb"), steamInfo(QStringLiteral(R"("removes": [], "blocked": null)")));
+        const QStringList store = script(QStringLiteral("store"), QString());
+        deb.setStoreCommand(store + QStringList{QStringLiteral("--open")});
+        deb.load();
+        waitFor(deb, DebFile::Ready);
+        QFile::remove(m_dir.filePath(QStringLiteral("args.txt")));
+        QVERIFY(deb.openInStore());
+        QTRY_COMPARE_WITH_TIMEOUT(args(), (QStringList{QStringLiteral("--open"), QStringLiteral("com.valvesoftware.Steam")}), 5000);
+    }
+
+    void refusedBeforeThePassword()
+    {
+        DebFile deb(QStringLiteral("/tmp/steam.deb"),
+                    steamInfo(QStringLiteral(R"("removes": ["steam-devices", "raye-gaming"], "blocked": {"reason": "removes", "what": "raye-gaming"})")));
+        deb.load();
+        waitFor(deb, DebFile::Failed);
+        QCOMPARE(deb.errorText(), DebFile::reasonText(QStringLiteral("removes"), QStringLiteral("raye-gaming")));
+        QVERIFY(deb.errorText().contains(QStringLiteral("raye-gaming")));
+    }
+
+    void storeApps()
+    {
+        QCOMPARE(DebFile::storeAppFor(QStringLiteral("steam-launcher")), QStringLiteral("com.valvesoftware.Steam"));
+        QCOMPARE(DebFile::storeAppFor(QStringLiteral("steam")), QStringLiteral("com.valvesoftware.Steam"));
+        QCOMPARE(DebFile::storeAppFor(QStringLiteral("heroic")), QString());
+    }
+
     void reasons()
     {
         const QStringList codes{QStringLiteral("badpath"), QStringLiteral("notfound"), QStringLiteral("noaccess"),
@@ -240,7 +298,7 @@ private Q_SLOTS:
                                 QStringLiteral("toolarge"), QStringLiteral("architecture"), QStringLiteral("dependencies"),
                                 QStringLiteral("conflict"), QStringLiteral("older"), QStringLiteral("busy"),
                                 QStringLiteral("space"), QStringLiteral("network"), QStringLiteral("setup"),
-                                QStringLiteral("changed"), QStringLiteral("system"),
+                                QStringLiteral("changed"), QStringLiteral("system"), QStringLiteral("removes"),
                                 QStringLiteral("unknown")};
         const QString generic = DebFile::reasonText(QStringLiteral("unknown"));
         for (const QString &code : codes) {
@@ -253,6 +311,7 @@ private Q_SLOTS:
         QVERIFY(DebFile::reasonText(QStringLiteral("conflict"), QStringLiteral("kwin")).contains(QStringLiteral("kwin")));
         QVERIFY(!DebFile::reasonText(QStringLiteral("conflict")).contains(QStringLiteral("%1")));
         QVERIFY(!DebFile::reasonText(QStringLiteral("dependencies")).contains(QStringLiteral("%1")));
+        QVERIFY(!DebFile::reasonText(QStringLiteral("removes")).contains(QStringLiteral("%1")));
     }
 
     void names()

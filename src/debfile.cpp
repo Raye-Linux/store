@@ -75,6 +75,11 @@ void DebFile::readInfo(int code)
     const QString launcher = info.value(QStringLiteral("launchers")).toArray().first().toString();
     m_launcher = launcher.startsWith(QLatin1String("/usr/share/applications/")) ? launcher : QString();
 
+    m_replaces.clear();
+    for (const QJsonValue &v : info.value(QStringLiteral("removes")).toArray())
+        m_replaces.append(v.toString());
+    m_storeAppId = storeAppFor(m_package);
+
     const QJsonValue newer = info.value(QStringLiteral("newer"));
     if (m_installed.isEmpty() || newer.isNull())
         m_relation = NotInstalled;
@@ -88,6 +93,14 @@ void DebFile::readInfo(int code)
     if (!info.value(QStringLiteral("archOk")).toBool()) {
         fail(i18n("This app can't be installed"),
              reasonText(QStringLiteral("architecture"), info.value(QStringLiteral("architecture")).toString()));
+        return;
+    }
+    // installing it would remove a part of Raye, or something it does not
+    // take the place of: said before the password, not after
+    const QJsonObject blocked = info.value(QStringLiteral("blocked")).toObject();
+    if (!blocked.isEmpty()) {
+        fail(i18n("This app can't be installed"),
+             reasonText(blocked.value(QStringLiteral("reason")).toString(), blocked.value(QStringLiteral("what")).toString()));
         return;
     }
     m_state = Ready;
@@ -193,6 +206,30 @@ bool DebFile::open()
     return QProcess::startDetached(QStringLiteral("kioclient"), {QStringLiteral("exec"), m_launcher});
 }
 
+bool DebFile::openInStore()
+{
+    if (m_storeAppId.isEmpty() || m_storeCommand.isEmpty())
+        return false;
+    return QProcess::startDetached(m_storeCommand.first(), m_storeCommand.mid(1) + QStringList{m_storeAppId});
+}
+
+QString DebFile::replacesText() const
+{
+    if (m_replaces.isEmpty())
+        return {};
+    return i18n("Installing it removes %1 from this PC: this app brings its own.", m_replaces.join(QStringLiteral(", ")));
+}
+
+QString DebFile::storeAppFor(const QString &package)
+{
+    // Valve's launcher (and the names it was published under)
+    static const QStringList steam{QStringLiteral("steam-launcher"), QStringLiteral("steam"),
+                                   QStringLiteral("steam-installer"), QStringLiteral("steam64")};
+    if (steam.contains(package))
+        return QStringLiteral("com.valvesoftware.Steam");
+    return {};
+}
+
 QString DebFile::reasonText(const QString &code, const QString &what)
 {
     if (code == QLatin1String("badpath") || code == QLatin1String("notfound"))
@@ -214,6 +251,9 @@ QString DebFile::reasonText(const QString &code, const QString &what)
     if (code == QLatin1String("conflict"))
         return what.isEmpty() ? i18n("This app can't be installed alongside an app that's already on this PC.")
                               : i18n("This app can't be installed alongside %1, which is already on this PC.", what);
+    if (code == QLatin1String("removes"))
+        return what.isEmpty() ? i18n("Installing this app would remove a part of Raye, so it can't be installed this way.")
+                              : i18n("Installing this app would remove %1, a part of Raye, so it can't be installed this way.", what);
     if (code == QLatin1String("changed"))
         return i18n("This file changed after it was opened. Open it again to install it.");
     if (code == QLatin1String("system"))
